@@ -47,14 +47,48 @@ class _SvgPreviewState extends State<SvgPreview> with SingleTickerProviderStateM
           _controller.repeat();
         }
 
+        final hasSelection = provider.activeWorkspace.selectedGroupElements.isNotEmpty;
+
         return Stack(
           children: [
             BackgroundLayer(),
+
+            // SVG with dimming when elements are selected
             InteractiveViewer(
               minScale: AppConstants.minZoom,
               maxScale: AppConstants.maxZoom,
-              child: _buildAnimatedSvg(provider),
+              child: AnimatedOpacity(
+                duration: const Duration(milliseconds: 200),
+                opacity: hasSelection ? 0.25 : 1.0,
+                child: _buildAnimatedSvg(provider),
+              ),
             ),
+
+            // Selection indicator overlay
+            if (hasSelection)
+              Positioned(
+                top: 8,
+                left: 8,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                  decoration: BoxDecoration(
+                    color: AppColors.accent.withValues(alpha: 0.9),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Icon(Icons.check_circle, color: Colors.white, size: 14),
+                      const SizedBox(width: 4),
+                      Text(
+                        '${provider.activeWorkspace.selectedGroupElements.length} seleccionadas',
+                        style: const TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.w600),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+
             if (provider.activeWorkspace.isTrajectoryMode)
               TrajectoryOverlay(),
             if (provider.activeWorkspace.isPiecesMode)

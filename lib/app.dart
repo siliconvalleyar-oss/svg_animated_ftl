@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'core/theme.dart';
-import 'screens/home_screen.dart';
+import 'screens/splash_screen.dart';
 
 class SvgAnimatorApp extends StatelessWidget {
   @override
@@ -8,7 +8,7 @@ class SvgAnimatorApp extends StatelessWidget {
     return MaterialApp(
       title: 'SVG Animator',
       theme: AppTheme.darkTheme,
-      home: HomeScreen(),
+      home: SplashScreen(),
       debugShowCheckedModeBanner: false,
     );
   }
