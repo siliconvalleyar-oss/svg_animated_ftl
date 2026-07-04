@@ -1,0 +1,10 @@
+{
+  "version": 1,
+  "skills": {
+    "svg-flutter": {
+      "source": "/mnt/disk/src/flutter_src/svg_animated_ftl",
+      "sourceType": "local",
+      "computedHash": "746cd9864714d918863c40a497e7d1f822f8950c824a267faa99ca9e9eb36f58"
+    }
+  }
+}

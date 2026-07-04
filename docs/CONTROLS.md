@@ -35,7 +35,7 @@
 - Solo aplica a animaciones de translación
 
 ### Animaciones que soportan ángulo
-`slide`, `bounce`, `shake`, `float`, `gravity`, `levitate`, `arc`, `radiate`, `wave-sine`, `wave-square`, `wave-triangle`
+`slide`, `bounce`, `shake`, `float`, `gravity`, `levitate`, `projectile`, `radiate`, `wave-sine`, `wave-square`, `wave-triangle`
 
 ## Controles específicos por animación
 
@@ -44,9 +44,17 @@
 - **Alto (Y)**: Slider 10-150px — radio vertical
 - **Ángulo**: Slider 0-360° — rotación de la trayectoria
 
-### Arco (solo con "arc" o "radiate")
+### Tiro Oblicuo (solo con "projectile")
+- **Velocidad inicial (v₀)**: Slider 10-300px/s
+- **Ángulo de lanzamiento (θ)**: Slider 0-90°
+- **Gravedad (g)**: Slider 1-30m/s²
+
+### Radiar (solo con "radiate")
 - **Eje X**: Slider 10-200px
 - **Eje Y**: Slider 10-200px
+
+### Opacidad (todas las piezas/grupos)
+- **Transparencia**: Slider 0.0-1.0 (independiente de la animación)
 
 ## Controles de reproducción
 

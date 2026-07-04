@@ -16,10 +16,13 @@ Aplicación móvil nativa para animar archivos SVG con una amplia gama de efecto
 
 ## Características
 
-- **19 animaciones preset**: Rotar, Rueda, Pulsar, Rebotar, Gravedad, Deslizar, Óvalo, Desvanecer, Dibujar, Temblar, Flotar, Levitar, Arco, Radiar, Girar, Brillar, Senoidal, Cuadrada, Triangular
+- **24 animaciones preset**: Rotar, Rueda, Pulsar, Rebotar, Gravedad, Deslizar, Óvalo, Desvanecer, Dibujar, Temblar, Flotar, Levitar, Tiro Oblicuo, Radiar, Girar, Brillar, Senoidal, Cuadrada, Triangular, Péndulo, Caída Libre, Rebote Elástico, Resorte, Opacidad
 - **Animaciones independientes por pieza**: Cada elemento del SVG puede tener su propio efecto
+- **Multi-selección**: Seleccionar múltiples piezas para aplicar controles a todas
+- **Grupos**: Combinar elementos para animación sincronizada con mismo eje
 - **Sentido / Ángulo**: Control de dirección con previsualización de trayectoria
-- **Controles avanzados**: Velocidad, retraso, repetición, dirección
+- **Controles avanzados**: Velocidad, retraso, repetición dirección, opacidad
+- **Física real**: Tiro oblicuo con fórmulas de física (v₀, θ, g), péndulo, caída libre, resorte
 - **Modo piezas**: Seleccionar y mover elementos individuales del SVG (touch)
 - **Grupos**: Combinar elementos para aplicar la misma animación
 - **Trayectorias personalizadas**: Dibujar caminos punto a punto

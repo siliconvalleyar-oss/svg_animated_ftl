@@ -8,8 +8,9 @@
 | Lenguaje | Dart 3.0+ |
 | Estado | ChangeNotifier + Provider |
 | SVG rendering | `flutter_svg` package |
-| Almacenamiento | `path_provider` + `file_picker` |
-| Persistencia | SharedPreferences (config) |
+| Almacenamiento | `path_provider` |
+| Persistencia | Hive (NoSQL) |
+| XML | `xml` package |
 
 ## Estructura del código
 
@@ -174,9 +175,10 @@ flutter run --release
 | `flutter_svg` | Renderizado de SVG |
 | `provider` | Gestión de estado |
 | `path_provider` | Rutas de almacenamiento |
-| `file_picker` | Selector de archivos |
-| `share_plus` | Compartir archivos |
 | `permission_handler` | Permisos de almacenamiento |
+| `hive` + `hive_flutter` | Persistencia local NoSQL |
+| `xml` | Parseo y generación de SVG |
+| `uuid` | IDs únicos para workspaces |
 
 ## Dependencias en pubspec.yaml
 
@@ -184,10 +186,12 @@ flutter run --release
 dependencies:
   flutter:
     sdk: flutter
-  flutter_svg: ^2.0.0
-  provider: ^6.0.0
-  path_provider: ^2.0.0
-  file_picker: ^5.0.0
-  share_plus: ^7.0.0
-  permission_handler: ^10.0.0
+  flutter_svg: ^2.0.9
+  provider: ^6.1.1
+  path_provider: ^2.1.1
+  permission_handler: ^11.0.0
+  uuid: ^4.2.1
+  hive: ^2.2.3
+  hive_flutter: ^1.1.0
+  xml: ^6.3.0
 ```

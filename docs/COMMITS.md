@@ -4,6 +4,41 @@
 
 ---
 
+## v1.0.6 — `80c96b1`
+
+**Fecha:** Actual  
+**Mensaje:** `feat: multi-select, groups, projectile physics, opacity control, new animations`
+
+### Cambios
+
+- Multi-selección con toggle boolean (click para seleccionar/deseleccionar)
+- Controles aplican a todas las piezas seleccionadas simultáneamente
+- Sistema de grupos: crear, renombrar, eliminar (mínimo 2 piezas)
+- Piezas agrupadas rotan juntas con mismo eje de referencia
+- Reemplazado "Arco" por "Tiro Oblicuo" con fórmulas de física reales
+- Nuevos efectos físicos: Péndulo, Caída Libre, Rebote Elástico, Resorte
+- Control de Opacidad individual por pieza o grupo
+- 24 animaciones preset (antes 19)
+
+### Archivos modificados
+
+| Archivo | Cambio |
+|---------|--------|
+| `lib/core/constants.dart` | 24 presets (reemplazado arc por projectile, +5 físicas) |
+| `lib/models/animation_config.dart` | +opacity, +initialVelocity, +launchAngle, +gravity |
+| `lib/services/animation_engine.dart` | 24 animaciones (projectile, pendulum, freefall, spring, elastic-bounce, opacity) |
+| `lib/providers/svg_provider.dart` | Multi-select, grupos, controles multi-elemento |
+| `lib/widgets/controls_panel.dart` | Opacidad, controles de física |
+| `lib/widgets/elements_list.dart` | Grupos, multi-selección visual |
+| `lib/widgets/animation_grid.dart` | Iconos para nuevos presets |
+| `docs/ANIMATIONS.md` | Actualizado a 24 presets |
+| `docs/CONTROLS.md` | Tiro oblicuo + opacidad |
+| `docs/README.md` | Features actualizadas |
+| `docs/DEVELOPMENT.md` | Dependencias actualizadas |
+| `VERSION` | `1.0.6` |
+
+---
+
 ## v1.0.5 — `c428410`
 
 **Fecha:** Actual  

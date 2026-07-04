@@ -1,6 +1,6 @@
 # Animaciones
 
-## Lista de animaciones (19 presets)
+## Lista de animaciones (24 presets)
 
 | ID | Nombre | Descripción | Tipo | Easing por defecto |
 |----|--------|-------------|------|-------------------|
@@ -16,21 +16,33 @@
 | `shake` | Temblar | Vibración ±8px | Translación | ease-in-out |
 | `float` | Flotar | Translate ±15px vertical | Translación | ease-in-out |
 | `levitate` | Levitar | Flotación con escala sutil | Translación | ease-in-out |
-| `arc` | Arco | Trayectoria de arco configurable | Translación | ease-in-out |
+| `projectile` | Tiro Oblicuo | Física real: x=v₀cos(θ)t, y=v₀sin(θ)t-½gt² | Física | linear |
 | `radiate` | Radiar | Arco + drop-shadow pulsante | Translación + Filtro | ease-in-out |
 | `spin` | Girar | Rotación + escala 0.85 | Rotación + Escala | ease-in-out |
 | `glow` | Brillar | drop-shadow pulsante | Filtro | ease-in-out |
 | `wave-sine` | Senoidal | Onda sinusoidal 320px | Translación | ease-in-out |
 | `wave-square` | Cuadrada | Onda cuadrada 80px | Translación | step-end |
 | `wave-triangle` | Triangular | Onda triangular 80px | Translación | linear |
+| `pendulum` | Péndulo | Oscilación tipo péndulo (θ=θmax·cos(ωt)) | Rotación | ease-in-out |
+| `freefall` | Caída Libre | y=½gt² | Física | ease-in |
+| `elastic-bounce` | Rebote Elástico | |sin(πt)|·amplitude | Física | ease-out |
+| `spring` | Resorte | A·e^(-ζωt)·cos(ωdt) amortiguado | Física | elasticOut |
+| `opacity-anim` | Opacidad | Oscila entre 0.2 y 1.0 | Opacidad | ease-in-out |
 
 ## Animaciones direccionables (11)
 
 Las siguientes animaciones soportan control de dirección mediante ángulo (0-360°):
 
 - `bounce`, `gravity`, `slide`, `shake`, `float`, `levitate`
-- `arc`, `radiate`
+- `projectile`, `radiate`
 - `wave-sine`, `wave-square`, `wave-triangle`
+
+## Animaciones con física (4)
+
+- `projectile` — Tiro oblicuo: x=v₀cos(θ)t, y=v₀sin(θ)t-½gt²
+- `freefall` — Caída libre: y=½gt²
+- `elastic-bounce` — Rebote elástico: |sin(πt)|·amplitude
+- `spring` — Resorte amortiguado: A·e^(-ζωt)·cos(ωdt)
 
 ## Implementación en Flutter
 
