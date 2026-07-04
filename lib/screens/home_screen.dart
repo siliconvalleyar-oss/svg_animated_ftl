@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:file_picker/file_picker.dart';
 import 'dart:io';
+import 'package:path_provider/path_provider.dart';
 import '../providers/svg_provider.dart';
 import '../core/constants.dart';
 import '../widgets/svg_preview.dart';
@@ -111,9 +111,9 @@ class _HomeScreenState extends State<HomeScreen> {
             children: [
               Expanded(
                 child: ElevatedButton.icon(
-                  onPressed: _importSvg,
-                  icon: const Icon(Icons.upload_file, size: 20),
-                  label: const Text('Importar SVG'),
+                  onPressed: _importSvgFromString,
+                  icon: const Icon(Icons.code, size: 20),
+                  label: const Text('Pegar SVG'),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: AppColors.accent,
                     foregroundColor: Colors.white,
@@ -192,36 +192,49 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Future<void> _importSvg() async {
+  Future<void> _importSvgFromString() async {
     try {
-      final result = await FilePicker.platform.pickFiles(
-        type: FileType.custom,
-        allowedExtensions: ['svg'],
+      final controller = TextEditingController();
+      final result = await showDialog<String>(
+        context: context,
+        builder: (context) => AlertDialog(
+          backgroundColor: AppColors.surface2,
+          title: const Text('Pegar código SVG', style: TextStyle(color: AppColors.text)),
+          content: TextField(
+            controller: controller,
+            maxLines: 10,
+            decoration: const InputDecoration(
+              hintText: '<svg viewBox="0 0 200 200">...</svg>',
+              hintStyle: TextStyle(color: AppColors.textDim),
+              border: OutlineInputBorder(),
+            ),
+            style: const TextStyle(color: AppColors.text),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Cancelar'),
+            ),
+            TextButton(
+              onPressed: () => Navigator.pop(context, controller.text),
+              child: const Text('Cargar', style: TextStyle(color: AppColors.accent)),
+            ),
+          ],
+        ),
       );
 
-      if (result == null || result.files.isEmpty) return;
+      if (result == null || result.trim().isEmpty) return;
 
-      final file = File(result.files.first.path!);
-      if (!await file.exists()) {
+      if (!result.trim().startsWith('<svg') && !result.trim().startsWith('<?xml')) {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('El archivo no existe')),
+            const SnackBar(content: Text('El código no parece ser un SVG válido')),
           );
         }
         return;
       }
 
-      final content = await file.readAsString();
-      if (content.isEmpty) {
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('El archivo está vacío')),
-          );
-        }
-        return;
-      }
-
-      await context.read<SvgProvider>().loadSvgString(content);
+      await context.read<SvgProvider>().loadSvgString(result.trim());
     } catch (e) {
       debugPrint('Error importing SVG: $e');
       if (mounted) {
@@ -244,21 +257,13 @@ class _HomeScreenState extends State<HomeScreen> {
         return;
       }
 
-      final result = await FilePicker.platform.saveFile(
-        dialogTitle: 'Guardar SVG Animado',
-        fileName: 'animated.svg',
-        type: FileType.custom,
-        allowedExtensions: ['svg'],
-      );
-
-      if (result == null) return;
-
-      final file = File(result);
+      final directory = await getApplicationDocumentsDirectory();
+      final file = File('${directory.path}/animated_svg_${DateTime.now().millisecondsSinceEpoch}.svg');
       await file.writeAsString(provider.currentSvgString!, flush: true);
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('SVG exportado correctamente')),
+          SnackBar(content: Text('Guardado en: ${file.path}')),
         );
       }
     } catch (e) {

@@ -12,8 +12,6 @@ dependencies:
   flutter_svg: ^2.0.9
   provider: ^6.1.1
   path_provider: ^2.1.1
-  file_picker: ^6.1.1
-  share_plus: ^7.2.1
   permission_handler: ^11.0.0
   uuid: ^4.2.1
   hive: ^2.2.3

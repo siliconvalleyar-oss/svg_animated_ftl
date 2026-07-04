@@ -17,6 +17,14 @@ subprojects {
 }
 subprojects {
     project.evaluationDependsOn(":app")
+    project.plugins.withId("com.android.library") {
+        val ext = project.extensions.getByType<com.android.build.gradle.LibraryExtension>()
+        ext.compileSdk = 36
+    }
+    project.plugins.withId("com.android.application") {
+        val ext = project.extensions.getByType<com.android.build.gradle.internal.dsl.BaseAppModuleExtension>()
+        ext.compileSdk = 36
+    }
 }
 
 tasks.register<Delete>("clean") {
