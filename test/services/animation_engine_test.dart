@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/scheduler.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:svg_animated_ftl/services/animation_engine.dart';
 import 'package:svg_animated_ftl/models/animation_config.dart';
@@ -9,8 +10,10 @@ void main() {
     late Widget testChild;
 
     setUp(() {
-      // Use a mock animation by providing a value directly
-      controller = AnimationController(unbounded: true, vsync: const TestVSync());
+      controller = AnimationController(
+        duration: const Duration(seconds: 1),
+        vsync: TestVSync(),
+      );
       testChild = const SizedBox(width: 100, height: 100);
     });
 
@@ -451,7 +454,6 @@ void main() {
   });
 }
 
-/// A simple [TickerProvider] for tests.
 class TestVSync extends TickerProvider {
   @override
   Ticker createTicker(TickerCallback onTick) {
