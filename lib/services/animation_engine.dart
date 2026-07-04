@@ -33,8 +33,8 @@ class AnimationEngine {
           return _buildFloat(child, animation, config.directionAngle);
         case 'levitate':
           return _buildLevitate(child, animation, config.directionAngle);
-        case 'arc':
-          return _buildArc(child, animation, config.arcRx, config.arcRy, config.directionAngle);
+        case 'projectile':
+          return _buildProjectile(child, animation, config);
         case 'radiate':
           return _buildRadiate(child, animation, config.arcRx, config.arcRy, config.directionAngle);
         case 'spin':
@@ -47,6 +47,16 @@ class AnimationEngine {
           return _buildWaveSquare(child, animation, config.directionAngle);
         case 'wave-triangle':
           return _buildWaveTriangle(child, animation, config.directionAngle);
+        case 'pendulum':
+          return _buildPendulum(child, animation);
+        case 'freefall':
+          return _buildFreefall(child, animation);
+        case 'elastic-bounce':
+          return _buildElasticBounce(child, animation);
+        case 'spring':
+          return _buildSpring(child, animation);
+        case 'opacity-anim':
+          return _buildOpacityAnim(child, animation);
         default:
           return child;
       }
@@ -74,10 +84,7 @@ class AnimationEngine {
       animation: animation,
       builder: (context, child) {
         final angle = (animation.value * 4).floorToDouble() * pi / 2;
-        return Transform.rotate(
-          angle: angle,
-          child: child,
-        );
+        return Transform.rotate(angle: angle, child: child);
       },
       child: child,
     );
@@ -155,14 +162,17 @@ class AnimationEngine {
     );
   }
 
-  static Widget _buildArc(Widget child, Animation<double> animation, double rx, double ry, double angle) {
-    final t = animation.value * pi;
-    final dx = cos(t) * rx;
-    final dy = -sin(t) * ry;
-    final rad = angle * pi / 180;
-    final rdx = dx * cos(rad) - dy * sin(rad);
-    final rdy = dx * sin(rad) + dy * cos(rad);
-    return Transform.translate(offset: Offset(rdx, rdy), child: child);
+  // Tiro Oblicuo — fórmula de física:
+  // x(t) = v0 * cos(θ) * t
+  // y(t) = v0 * sin(θ) * t - 0.5 * g * t²
+  static Widget _buildProjectile(Widget child, Animation<double> animation, AnimationConfig config) {
+    final v0 = config.initialVelocity;
+    final theta = config.launchAngle * pi / 180;
+    final g = config.gravity;
+    final t = animation.value * 2.0;
+    final dx = v0 * cos(theta) * t;
+    final dy = -(v0 * sin(theta) * t - 0.5 * g * t * t);
+    return Transform.translate(offset: Offset(dx, dy), child: child);
   }
 
   static Widget _buildRadiate(Widget child, Animation<double> animation, double rx, double ry, double angle) {
@@ -180,7 +190,7 @@ class AnimationEngine {
           shape: BoxShape.circle,
           boxShadow: [
             BoxShadow(
-              color: Colors.amber.withOpacity(glow),
+              color: Colors.amber.withValues(alpha: glow),
               blurRadius: 10,
               spreadRadius: 2,
             ),
@@ -213,7 +223,7 @@ class AnimationEngine {
         shape: BoxShape.circle,
         boxShadow: [
           BoxShadow(
-            color: Colors.amber.withOpacity(glow),
+            color: Colors.amber.withValues(alpha: glow),
             blurRadius: 15,
             spreadRadius: 3,
           ),
@@ -242,15 +252,53 @@ class AnimationEngine {
   static Widget _buildWaveTriangle(Widget child, Animation<double> animation, double angle) {
     final rad = angle * pi / 180;
     final t = animation.value * 2;
-    final wave = (t % 2 < 1) ? (t % 1) * 80 - 40 : (2 - t % 1) * 80 - 40;
+    final mod = t % 2;
+    final wave = (mod < 1) ? (t % 1) * 80 - 40 : (2 - mod) * 80 - 40;
     final dx = sin(rad) * wave;
     final dy = -cos(rad) * wave;
     return Transform.translate(offset: Offset(dx, dy), child: child);
   }
 
+  // Péndulo — θ(t) = θmax * cos(ωt), ω = sqrt(g/L)
+  static Widget _buildPendulum(Widget child, Animation<double> animation) {
+    final angle = sin(animation.value * 2 * pi) * 0.5;
+    return Transform.rotate(angle: angle, child: child);
+  }
+
+  // Caída Libre — y(t) = 0.5 * g * t²
+  static Widget _buildFreefall(Widget child, Animation<double> animation) {
+    final t = animation.value;
+    final dy = 0.5 * 9.8 * t * t * 20;
+    return Transform.translate(offset: Offset(0, dy), child: child);
+  }
+
+  // Rebote Elástico — y(t) = |sin(πt)| * amplitude
+  static Widget _buildElasticBounce(Widget child, Animation<double> animation) {
+    final dy = sin((animation.value * pi).abs()) * 40;
+    return Transform.translate(offset: Offset(0, -dy), child: child);
+  }
+
+  // Resorte — x(t) = A * e^(-ζωt) * cos(ωdt)
+  static Widget _buildSpring(Widget child, Animation<double> animation) {
+    final t = animation.value * 4 * pi;
+    final decay = exp(-0.5 * animation.value * 3);
+    final dx = decay * sin(t) * 30;
+    final scale = 1.0 + decay * cos(t) * 0.1;
+    return Transform.translate(
+      offset: Offset(dx, 0),
+      child: Transform.scale(scale: scale, child: child),
+    );
+  }
+
+  // Opacidad — oscila entre 0.2 y 1.0
+  static Widget _buildOpacityAnim(Widget child, Animation<double> animation) {
+    final opacity = 0.2 + (1.0 - animation.value) * 0.8;
+    return Opacity(opacity: opacity, child: child);
+  }
+
   static bool isTranslatable(String presetId) {
     return ['slide', 'bounce', 'shake', 'float', 'gravity', 'levitate',
-            'arc', 'radiate', 'wave-sine', 'wave-square', 'wave-triangle']
+            'projectile', 'radiate', 'wave-sine', 'wave-square', 'wave-triangle']
         .contains(presetId);
   }
 

@@ -96,8 +96,8 @@ class AnimationGrid extends StatelessWidget {
         return Icons.waves;
       case 'levitate':
         return Icons.flight;
-      case 'arc':
-        return Icons.architecture;
+      case 'projectile':
+        return Icons.rocket_launch;
       case 'radiate':
         return Icons.wb_sunny;
       case 'spin':
@@ -110,6 +110,16 @@ class AnimationGrid extends StatelessWidget {
         return Icons.stacked_line_chart;
       case 'wave-triangle':
         return Icons.change_history;
+      case 'pendulum':
+        return Icons.swap_vert;
+      case 'freefall':
+        return Icons.vertical_align_bottom;
+      case 'elastic-bounce':
+        return Icons.swap_calls;
+      case 'spring':
+        return Icons.waves;
+      case 'opacity-anim':
+        return Icons.opacity;
       default:
         return Icons.animation;
     }

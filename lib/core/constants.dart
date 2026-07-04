@@ -32,13 +32,18 @@ class AnimationPresets {
     {'name': 'Temblar', 'id': 'shake', 'color': '#e67e22', 'duration': 0.5, 'easing': 'easeInOut', 'translatable': true},
     {'name': 'Flotar', 'id': 'float', 'color': '#9b59b6', 'duration': 3.0, 'easing': 'easeInOut', 'translatable': true},
     {'name': 'Levitar', 'id': 'levitate', 'color': '#1abc9c', 'duration': 3.5, 'easing': 'easeInOut', 'translatable': true},
-    {'name': 'Arco', 'id': 'arc', 'color': '#f39c12', 'duration': 4.0, 'easing': 'easeInOut', 'translatable': true},
+    {'name': 'Tiro Oblicuo', 'id': 'projectile', 'color': '#f39c12', 'duration': 4.0, 'easing': 'linear', 'translatable': true},
     {'name': 'Radiar', 'id': 'radiate', 'color': '#e67e22', 'duration': 4.0, 'easing': 'easeInOut', 'translatable': true},
     {'name': 'Girar', 'id': 'spin', 'color': '#3498db', 'duration': 1.2, 'easing': 'easeInOut'},
     {'name': 'Brillar', 'id': 'glow', 'color': '#e74c3c', 'duration': 2.0, 'easing': 'easeInOut'},
     {'name': 'Senoidal', 'id': 'wave-sine', 'color': '#1abc9c', 'duration': 3.0, 'easing': 'easeInOut', 'translatable': true},
     {'name': 'Cuadrada', 'id': 'wave-square', 'color': '#e74c3c', 'duration': 1.5, 'easing': 'linear', 'translatable': true},
     {'name': 'Triangular', 'id': 'wave-triangle', 'color': '#9b59b6', 'duration': 2.0, 'easing': 'linear', 'translatable': true},
+    {'name': 'Péndulo', 'id': 'pendulum', 'color': '#e74c3c', 'duration': 2.0, 'easing': 'easeInOut'},
+    {'name': 'Caída Libre', 'id': 'freefall', 'color': '#1abc9c', 'duration': 1.5, 'easing': 'easeIn'},
+    {'name': 'Rebote Elástico', 'id': 'elastic-bounce', 'color': '#f39c12', 'duration': 1.0, 'easing': 'easeOut'},
+    {'name': 'Resorte', 'id': 'spring', 'color': '#9b59b6', 'duration': 2.0, 'easing': 'elasticOut'},
+    {'name': 'Opacidad', 'id': 'opacity-anim', 'color': '#e74c3c', 'duration': 2.0, 'easing': 'easeInOut'},
   ];
 
   static const List<Map<String, dynamic>> shapes = [
@@ -65,4 +70,8 @@ class AppConstants {
   static const double defaultDelay = 0.0;
   static const String defaultIteration = 'infinite';
   static const String defaultDirection = 'normal';
+  static const double defaultOpacity = 1.0;
+  static const double defaultGravity = 9.8;
+  static const double defaultInitialVelocity = 100.0;
+  static const double defaultLaunchAngle = 45.0;
 }

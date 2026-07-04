@@ -33,7 +33,6 @@ class SvgProvider extends ChangeNotifier {
           name: 'Espacio 1',
         ));
       }
-      // Load example SVG if no SVG is loaded
       if (activeWorkspace.originalSvgString == null) {
         try {
           final exampleSvg = await rootBundle.loadString('assets/example.svg');
@@ -111,7 +110,6 @@ class SvgProvider extends ChangeNotifier {
           _activeWorkspaceIndex = _workspaces.length - 1;
         }
       }
-
       activeWorkspace.originalSvgString = svgString;
       _resetAnimationState();
       _saveActiveWorkspace();
@@ -121,50 +119,77 @@ class SvgProvider extends ChangeNotifier {
     }
   }
 
-  Future<void> loadSvgFile(File file) async {
+  // === PIECE SELECTION (TOGGLE) ===
+  void toggleElementSelection(int index) {
     try {
-      if (!await file.exists()) {
-        debugPrint('File does not exist');
-        return;
+      if (activeWorkspace.selectedGroupElements.contains(index)) {
+        activeWorkspace.selectedGroupElements.remove(index);
+      } else {
+        activeWorkspace.selectedGroupElements.add(index);
       }
-      final content = await file.readAsString();
-      if (content.isEmpty) {
-        debugPrint('File is empty');
-        return;
-      }
-      await loadSvgString(content);
+      activeWorkspace.selectedElementIndex =
+          activeWorkspace.selectedGroupElements.isNotEmpty
+              ? activeWorkspace.selectedGroupElements.last
+              : null;
+      notifyListeners();
     } catch (e) {
-      debugPrint('Error loading file: $e');
+      debugPrint('Error toggling selection: $e');
+    }
+  }
+
+  void selectElement(int index) {
+    activeWorkspace.selectedGroupElements.clear();
+    activeWorkspace.selectedGroupElements.add(index);
+    activeWorkspace.selectedElementIndex = index;
+    notifyListeners();
+  }
+
+  void clearSelection() {
+    activeWorkspace.selectedGroupElements.clear();
+    activeWorkspace.selectedElementIndex = null;
+    activeWorkspace.selectedGroupId = null;
+    notifyListeners();
+  }
+
+  // === MULTI-SELECT CONTROLS ===
+  void _applyToSelectedElements(void Function(int idx, AnimationConfig cfg) fn) {
+    try {
+      _pushHistory();
+      for (final idx in activeWorkspace.selectedGroupElements) {
+        final cfg = _getConfigForIndex(idx);
+        fn(idx, cfg);
+        activeWorkspace.elementAnimations[idx] = cfg;
+      }
+      notifyListeners();
+    } catch (e) {
+      debugPrint('Error applying to selected: $e');
     }
   }
 
   void togglePreset(String presetId) {
     try {
-      final index = activeWorkspace.selectedElementIndex;
-      if (index == null) return;
-
       _pushHistory();
-      final cfg = _getConfigForIndex(index);
-
-      if (cfg.presetId == presetId) {
-        if (cfg.extraPresets.isNotEmpty) {
-          cfg.presetId = cfg.extraPresets.removeAt(0);
-        } else {
-          cfg.presetId = null;
-        }
-      } else if (cfg.extraPresets.contains(presetId)) {
-        cfg.extraPresets.remove(presetId);
-      } else {
-        if (cfg.presetId != null) {
-          if (!cfg.extraPresets.contains(cfg.presetId!)) {
-            cfg.extraPresets.add(cfg.presetId!);
+      for (final index in activeWorkspace.selectedGroupElements) {
+        final cfg = _getConfigForIndex(index);
+        if (cfg.presetId == presetId) {
+          if (cfg.extraPresets.isNotEmpty) {
+            cfg.presetId = cfg.extraPresets.removeAt(0);
+          } else {
+            cfg.presetId = null;
           }
+        } else if (cfg.extraPresets.contains(presetId)) {
+          cfg.extraPresets.remove(presetId);
+        } else {
+          if (cfg.presetId != null) {
+            if (!cfg.extraPresets.contains(cfg.presetId!)) {
+              cfg.extraPresets.add(cfg.presetId!);
+            }
+          }
+          cfg.presetId = presetId;
         }
-        cfg.presetId = presetId;
+        activeWorkspace.elementAnimations[index] = cfg;
+        _syncGroupIfNeeded(index, cfg);
       }
-
-      activeWorkspace.elementAnimations[index] = cfg;
-      _syncGroupIfNeeded(index, cfg);
       notifyListeners();
     } catch (e) {
       debugPrint('Error toggling preset: $e');
@@ -172,167 +197,77 @@ class SvgProvider extends ChangeNotifier {
   }
 
   void updateAnimationSpeed(double speed) {
-    try {
-      final index = activeWorkspace.selectedElementIndex;
-      if (index == null) return;
-      final cfg = _getConfigForIndex(index);
-      cfg.speed = speed;
-      _syncGroupValue(index, 'speed', speed);
-      notifyListeners();
-    } catch (e) {
-      debugPrint('Error updating speed: $e');
-    }
+    _applyToSelectedElements((idx, cfg) => cfg.speed = speed);
   }
 
   void updateAnimationDelay(double delay) {
-    try {
-      final index = activeWorkspace.selectedElementIndex;
-      if (index == null) return;
-      final cfg = _getConfigForIndex(index);
-      cfg.delay = delay;
-      _syncGroupValue(index, 'delay', delay);
-      notifyListeners();
-    } catch (e) {
-      debugPrint('Error updating delay: $e');
-    }
+    _applyToSelectedElements((idx, cfg) => cfg.delay = delay);
   }
 
   void updateAnimationIteration(String iter) {
-    try {
-      final index = activeWorkspace.selectedElementIndex;
-      if (index == null) return;
-      final cfg = _getConfigForIndex(index);
-      cfg.iter = iter;
-      _syncGroupValue(index, 'iter', iter);
-      notifyListeners();
-    } catch (e) {
-      debugPrint('Error updating iteration: $e');
-    }
+    _applyToSelectedElements((idx, cfg) => cfg.iter = iter);
   }
 
   void updateAnimationDirection(String dir) {
-    try {
-      final index = activeWorkspace.selectedElementIndex;
-      if (index == null) return;
-      final cfg = _getConfigForIndex(index);
-      cfg.dir = dir;
-      _syncGroupValue(index, 'dir', dir);
-      notifyListeners();
-    } catch (e) {
-      debugPrint('Error updating direction: $e');
-    }
+    _applyToSelectedElements((idx, cfg) => cfg.dir = dir);
   }
 
   void updateDirectionAngle(double angle) {
-    try {
-      final index = activeWorkspace.selectedElementIndex;
-      if (index == null) return;
-      final cfg = _getConfigForIndex(index);
-      cfg.directionAngle = angle;
-      _syncGroupValue(index, 'directionAngle', angle);
-      notifyListeners();
-    } catch (e) {
-      debugPrint('Error updating angle: $e');
-    }
+    _applyToSelectedElements((idx, cfg) => cfg.directionAngle = angle);
+  }
+
+  void updateOpacity(double opacity) {
+    _applyToSelectedElements((idx, cfg) => cfg.opacity = opacity);
+  }
+
+  void updateInitialVelocity(double velocity) {
+    _applyToSelectedElements((idx, cfg) => cfg.initialVelocity = velocity);
+  }
+
+  void updateLaunchAngle(double angle) {
+    _applyToSelectedElements((idx, cfg) => cfg.launchAngle = angle);
+  }
+
+  void updateGravity(double gravity) {
+    _applyToSelectedElements((idx, cfg) => cfg.gravity = gravity);
   }
 
   void updateOvalRx(double rx) {
-    try {
-      final index = activeWorkspace.selectedElementIndex;
-      if (index == null) return;
-      final cfg = _getConfigForIndex(index);
-      cfg.ovalRx = rx;
-      notifyListeners();
-    } catch (e) {
-      debugPrint('Error updating ovalRx: $e');
-    }
+    _applyToSelectedElements((idx, cfg) => cfg.ovalRx = rx);
   }
 
   void updateOvalRy(double ry) {
-    try {
-      final index = activeWorkspace.selectedElementIndex;
-      if (index == null) return;
-      final cfg = _getConfigForIndex(index);
-      cfg.ovalRy = ry;
-      notifyListeners();
-    } catch (e) {
-      debugPrint('Error updating ovalRy: $e');
-    }
+    _applyToSelectedElements((idx, cfg) => cfg.ovalRy = ry);
   }
 
   void updateArcRx(double rx) {
-    try {
-      final index = activeWorkspace.selectedElementIndex;
-      if (index == null) return;
-      final cfg = _getConfigForIndex(index);
-      cfg.arcRx = rx;
-      notifyListeners();
-    } catch (e) {
-      debugPrint('Error updating arcRx: $e');
-    }
+    _applyToSelectedElements((idx, cfg) => cfg.arcRx = rx);
   }
 
   void updateArcRy(double ry) {
-    try {
-      final index = activeWorkspace.selectedElementIndex;
-      if (index == null) return;
-      final cfg = _getConfigForIndex(index);
-      cfg.arcRy = ry;
-      notifyListeners();
-    } catch (e) {
-      debugPrint('Error updating arcRy: $e');
-    }
+    _applyToSelectedElements((idx, cfg) => cfg.arcRy = ry);
   }
 
-  void selectElement(int index) {
-    activeWorkspace.selectedElementIndex = index;
-    notifyListeners();
-  }
-
-  void clearSelection() {
-    activeWorkspace.selectedElementIndex = null;
-    notifyListeners();
-  }
-
-  void togglePiecesMode() {
-    activeWorkspace.isPiecesMode = !activeWorkspace.isPiecesMode;
-    if (!activeWorkspace.isPiecesMode) {
-      activeWorkspace.piecesSelectedIndex = -1;
-    }
-    notifyListeners();
-  }
-
-  void moveElement(int index, double dx, double dy) {
-    notifyListeners();
-  }
-
+  // === GROUPS ===
   void createGroup(List<int> indices, String name) {
     try {
       if (indices.length < 2) return;
       _pushHistory();
-
       final color = _getNextGroupColor(activeWorkspace.nextGroupId);
       final groupId = 'g${activeWorkspace.nextGroupId++}';
-
       final templateConfig = elementAnimations[indices.first] ?? AnimationConfig();
-
       final group = Group(
         name: name,
         color: color,
         elements: List.from(indices),
         config: AnimationConfig.fromJson(templateConfig.toJson()),
       );
-
       activeWorkspace.elementGroups[groupId] = group;
-
       for (final idx in indices) {
         activeWorkspace.elementAnimations[idx] = AnimationConfig.fromJson(templateConfig.toJson());
       }
-
-      activeWorkspace.selectedGroupElements = [];
-      activeWorkspace.isMultiSelectMode = false;
+      activeWorkspace.selectedGroupElements.clear();
       activeWorkspace.selectedGroupId = groupId;
-
       _saveActiveWorkspace();
       notifyListeners();
     } catch (e) {
@@ -354,6 +289,30 @@ class SvgProvider extends ChangeNotifier {
     }
   }
 
+  void renameGroup(String groupId, String newName) {
+    try {
+      final group = activeWorkspace.elementGroups[groupId];
+      if (group != null) {
+        group.name = newName;
+        _saveWorkspaces();
+        notifyListeners();
+      }
+    } catch (e) {
+      debugPrint('Error renaming group: $e');
+    }
+  }
+
+  // === PIECES MODE ===
+  void togglePiecesMode() {
+    activeWorkspace.isPiecesMode = !activeWorkspace.isPiecesMode;
+    if (!activeWorkspace.isPiecesMode) {
+      activeWorkspace.piecesSelectedIndex = -1;
+      activeWorkspace.selectedGroupElements.clear();
+    }
+    notifyListeners();
+  }
+
+  // === TRAJECTORIES ===
   String addTrajectory(String name) {
     try {
       final id = 'traj_${activeWorkspace.nextTrajId++}';
@@ -398,6 +357,7 @@ class SvgProvider extends ChangeNotifier {
     }
   }
 
+  // === UNDO / REDO ===
   void _pushHistory() {
     try {
       final ws = activeWorkspace;
@@ -476,7 +436,6 @@ class SvgProvider extends ChangeNotifier {
       orElse: () => '',
     );
     if (groupId.isEmpty) return;
-
     final group = activeWorkspace.elementGroups[groupId]!;
     switch (key) {
       case 'speed': group.config.speed = value; break;
@@ -484,8 +443,8 @@ class SvgProvider extends ChangeNotifier {
       case 'iter': group.config.iter = value; break;
       case 'dir': group.config.dir = value; break;
       case 'directionAngle': group.config.directionAngle = value; break;
+      case 'opacity': group.config.opacity = value; break;
     }
-
     for (final idx in group.elements) {
       if (activeWorkspace.elementAnimations.containsKey(idx)) {
         switch (key) {
@@ -494,6 +453,7 @@ class SvgProvider extends ChangeNotifier {
           case 'iter': activeWorkspace.elementAnimations[idx]!.iter = value; break;
           case 'dir': activeWorkspace.elementAnimations[idx]!.dir = value; break;
           case 'directionAngle': activeWorkspace.elementAnimations[idx]!.directionAngle = value; break;
+          case 'opacity': activeWorkspace.elementAnimations[idx]!.opacity = value; break;
         }
       }
     }
@@ -505,10 +465,8 @@ class SvgProvider extends ChangeNotifier {
       orElse: () => '',
     );
     if (groupId.isEmpty) return;
-
     final group = activeWorkspace.elementGroups[groupId]!;
     group.config = AnimationConfig.fromJson(config.toJson());
-
     for (final idx in group.elements) {
       activeWorkspace.elementAnimations[idx] = AnimationConfig.fromJson(config.toJson());
     }
@@ -518,7 +476,7 @@ class SvgProvider extends ChangeNotifier {
     activeWorkspace.elementAnimations = {};
     activeWorkspace.elementGroups = {};
     activeWorkspace.selectedElementIndex = null;
-    activeWorkspace.selectedGroupElements = [];
+    activeWorkspace.selectedGroupElements.clear();
     activeWorkspace.selectedGroupId = null;
     activeWorkspace.isMultiSelectMode = false;
     activeWorkspace.nextGroupId = 1;

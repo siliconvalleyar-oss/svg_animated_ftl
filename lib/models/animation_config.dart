@@ -49,6 +49,18 @@ class AnimationConfig extends HiveObject {
   @HiveField(14)
   String? trajectoryId;
 
+  @HiveField(15)
+  double opacity;
+
+  @HiveField(16)
+  double initialVelocity;
+
+  @HiveField(17)
+  double launchAngle;
+
+  @HiveField(18)
+  double gravity;
+
   AnimationConfig({
     this.presetId,
     this.speed = 1.0,
@@ -65,6 +77,10 @@ class AnimationConfig extends HiveObject {
     this.pivotY,
     List<String>? extraPresets,
     this.trajectoryId,
+    this.opacity = 1.0,
+    this.initialVelocity = 100.0,
+    this.launchAngle = 45.0,
+    this.gravity = 9.8,
   }) : extraPresets = extraPresets ?? [];
 
   AnimationConfig copyWith({
@@ -83,6 +99,10 @@ class AnimationConfig extends HiveObject {
     double? pivotY,
     List<String>? extraPresets,
     String? trajectoryId,
+    double? opacity,
+    double? initialVelocity,
+    double? launchAngle,
+    double? gravity,
   }) {
     return AnimationConfig(
       presetId: presetId ?? this.presetId,
@@ -100,6 +120,10 @@ class AnimationConfig extends HiveObject {
       pivotY: pivotY ?? this.pivotY,
       extraPresets: extraPresets ?? List.from(this.extraPresets),
       trajectoryId: trajectoryId ?? this.trajectoryId,
+      opacity: opacity ?? this.opacity,
+      initialVelocity: initialVelocity ?? this.initialVelocity,
+      launchAngle: launchAngle ?? this.launchAngle,
+      gravity: gravity ?? this.gravity,
     );
   }
 
@@ -119,6 +143,10 @@ class AnimationConfig extends HiveObject {
     'pivotY': pivotY,
     'extraPresets': extraPresets,
     'trajectoryId': trajectoryId,
+    'opacity': opacity,
+    'initialVelocity': initialVelocity,
+    'launchAngle': launchAngle,
+    'gravity': gravity,
   };
 
   factory AnimationConfig.fromJson(Map<String, dynamic> json) {
@@ -138,6 +166,10 @@ class AnimationConfig extends HiveObject {
       pivotY: json['pivotY']?.toDouble(),
       extraPresets: List<String>.from(json['extraPresets'] ?? []),
       trajectoryId: json['trajectoryId'],
+      opacity: (json['opacity'] ?? 1.0).toDouble(),
+      initialVelocity: (json['initialVelocity'] ?? 100.0).toDouble(),
+      launchAngle: (json['launchAngle'] ?? 45.0).toDouble(),
+      gravity: (json['gravity'] ?? 9.8).toDouble(),
     );
   }
 }
