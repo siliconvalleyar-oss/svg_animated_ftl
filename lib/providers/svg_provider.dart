@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:hive/hive.dart';
 import 'package:uuid/uuid.dart';
 import '../models/animation_config.dart';
@@ -31,6 +32,15 @@ class SvgProvider extends ChangeNotifier {
           id: _generateId(),
           name: 'Espacio 1',
         ));
+      }
+      // Load example SVG if no SVG is loaded
+      if (activeWorkspace.originalSvgString == null) {
+        try {
+          final exampleSvg = await rootBundle.loadString('assets/example.svg');
+          activeWorkspace.originalSvgString = exampleSvg;
+        } catch (e) {
+          debugPrint('Could not load example SVG: $e');
+        }
       }
       notifyListeners();
     } catch (e) {
