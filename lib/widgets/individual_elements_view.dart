@@ -10,8 +10,9 @@ import 'animation_scope.dart';
 
 class IndividualElementsView extends StatelessWidget {
   final double dimOpacity;
+  final double selectedOpacity;
 
-  const IndividualElementsView({Key? key, this.dimOpacity = 0.5}) : super(key: key);
+  const IndividualElementsView({Key? key, this.dimOpacity = 0.4, this.selectedOpacity = 1.0}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -75,28 +76,24 @@ class IndividualElementsView extends StatelessWidget {
                 );
               }
 
-              // Selected piece: bright highlight
+              // Selected piece: clean border indicator + opacity
               if (isSelected && hasSelection) {
                 elementWidget = Container(
                   decoration: BoxDecoration(
                     border: Border.all(
                       color: AppColors.accent,
-                      width: 3,
+                      width: 2,
                     ),
-                    boxShadow: [
-                      BoxShadow(
-                        color: AppColors.accent.withValues(alpha: 0.6),
-                        blurRadius: 8,
-                        spreadRadius: 2,
-                      ),
-                    ],
                   ),
-                  child: elementWidget,
+                  child: Opacity(
+                    opacity: selectedOpacity,
+                    child: elementWidget,
+                  ),
                 );
               } else if (hasSelection) {
                 // Non-selected pieces: dimmed
                 elementWidget = Opacity(
-                  opacity: 1.0 - dimOpacity,
+                  opacity: dimOpacity,
                   child: elementWidget,
                 );
               }

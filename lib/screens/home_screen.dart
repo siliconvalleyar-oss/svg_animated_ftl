@@ -11,6 +11,7 @@ import '../widgets/animation_grid.dart';
 import '../widgets/controls_panel.dart';
 import '../widgets/elements_list.dart';
 import '../widgets/shapes_grid.dart';
+import '../services/export_service.dart';
 
 class HomeScreen extends StatefulWidget {
   @override
@@ -33,7 +34,7 @@ class _HomeScreenState extends State<HomeScreen> {
         builder: (context, settings, _) {
           return Column(
             children: [
-              Expanded(child: SvgPreview(dimOpacity: settings.dimOpacity)),
+              Expanded(child: SvgPreview(dimOpacity: settings.dimOpacity, selectedOpacity: settings.selectedOpacity)),
               if (_selectedPanel >= 0) _buildPanel(),
             ],
           );
@@ -53,23 +54,13 @@ class _HomeScreenState extends State<HomeScreen> {
   PreferredSizeWidget _buildAppBar() {
     return AppBar(
       backgroundColor: AppColors.surface,
-      title: GestureDetector(
-        onTap: _renameWorkspace,
-        child: Consumer<SvgProvider>(
-          builder: (context, provider, _) {
-            return Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(
-                  provider.activeWorkspace.name,
-                  style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
-                ),
-                const SizedBox(width: 4),
-                const Icon(Icons.edit, size: 14, color: AppColors.textDim),
-              ],
-            );
-          },
-        ),
+      title: Consumer<SvgProvider>(
+        builder: (context, provider, _) {
+          return Text(
+            provider.activeWorkspace.name,
+            style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+          );
+        },
       ),
       actions: [
         IconButton(
@@ -83,6 +74,20 @@ class _HomeScreenState extends State<HomeScreen> {
           onPressed: context.watch<SvgProvider>().canRedo
               ? () => context.read<SvgProvider>().redo()
               : null,
+        ),
+        PopupMenuButton<String>(
+          icon: const Icon(Icons.file_upload_outlined),
+          onSelected: (value) {
+            if (value == 'import') {
+              _importSvgFromString();
+            } else if (value == 'export') {
+              _exportSvg();
+            }
+          },
+          itemBuilder: (context) => [
+            const PopupMenuItem(value: 'import', child: ListTile(leading: Icon(Icons.upload_file), title: Text('Importar SVG'))),
+            const PopupMenuItem(value: 'export', child: ListTile(leading: Icon(Icons.save_alt), title: Text('Exportar SVG'))),
+          ],
         ),
         IconButton(
           icon: const Icon(Icons.settings),
@@ -302,8 +307,11 @@ class _HomeScreenState extends State<HomeScreen> {
 
   void _showSettings() {
     final settings = context.read<SettingsProvider>();
-    final controller = TextEditingController(text: settings.exportPath);
+    final provider = context.read<SvgProvider>();
+    final pathController = TextEditingController(text: settings.exportPath);
+    final nameController = TextEditingController(text: provider.activeWorkspace.name);
     double tempDimOpacity = settings.dimOpacity;
+    double tempSelectedOpacity = settings.selectedOpacity;
     double tempSpeed = settings.defaultSpeed;
 
     showDialog(
@@ -321,7 +329,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   const Text('Ruta de exportación/importación:', style: TextStyle(fontSize: 12, color: AppColors.textDim)),
                   const SizedBox(height: 8),
                   TextField(
-                    controller: controller,
+                    controller: pathController,
                     style: const TextStyle(color: AppColors.text, fontSize: 13),
                     decoration: InputDecoration(
                       hintText: '/sdcard/Pictures/svg_animated_ftl',
@@ -330,9 +338,21 @@ class _HomeScreenState extends State<HomeScreen> {
                       suffixIcon: IconButton(
                         icon: const Icon(Icons.restore, size: 18),
                         onPressed: () {
-                          controller.text = '/sdcard/Pictures/svg_animated_ftl';
+                          pathController.text = '/sdcard/Pictures/svg_animated_ftl';
                         },
                       ),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  const Text('Nombre del espacio:', style: TextStyle(fontSize: 12, color: AppColors.textDim)),
+                  const SizedBox(height: 8),
+                  TextField(
+                    controller: nameController,
+                    style: const TextStyle(color: AppColors.text, fontSize: 13),
+                    decoration: const InputDecoration(
+                      hintText: 'Workspace',
+                      hintStyle: TextStyle(color: AppColors.textDim),
+                      border: OutlineInputBorder(),
                     ),
                   ),
                   const SizedBox(height: 16),
@@ -387,6 +407,32 @@ class _HomeScreenState extends State<HomeScreen> {
                       ),
                     ],
                   ),
+                  const SizedBox(height: 12),
+                  const Text('Opacidad de piezas seleccionadas:', style: TextStyle(fontSize: 12, color: AppColors.textDim)),
+                  const SizedBox(height: 4),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Slider(
+                          value: tempSelectedOpacity,
+                          min: 0.0,
+                          max: 1.0,
+                          divisions: 20,
+                          activeColor: AppColors.accent,
+                          onChanged: (v) {
+                            setDialogState(() => tempSelectedOpacity = v);
+                          },
+                        ),
+                      ),
+                      SizedBox(
+                        width: 40,
+                        child: Text(
+                          '${(tempSelectedOpacity * 100).toInt()}%',
+                          style: const TextStyle(fontSize: 11, color: AppColors.text),
+                        ),
+                      ),
+                    ],
+                  ),
                 ],
               ),
             ),
@@ -397,7 +443,7 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
               TextButton(
                 onPressed: () async {
-                  final path = controller.text.trim();
+                  final path = pathController.text.trim();
                   if (path.isNotEmpty) {
                     final dir = Directory(path);
                     if (!await dir.exists()) {
@@ -405,7 +451,12 @@ class _HomeScreenState extends State<HomeScreen> {
                     }
                     await settings.setExportPath(path);
                   }
+                  final name = nameController.text.trim();
+                  if (name.isNotEmpty && name != provider.activeWorkspace.name) {
+                    provider.renameWorkspace(name);
+                  }
                   await settings.setDimOpacity(tempDimOpacity);
+                  await settings.setSelectedOpacity(tempSelectedOpacity);
                   await settings.setDefaultSpeed(tempSpeed);
                   if (mounted) {
                     ScaffoldMessenger.of(context).showSnackBar(
@@ -562,8 +613,14 @@ class _HomeScreenState extends State<HomeScreen> {
         await dir.create(recursive: true);
       }
 
+      final animatedSvg = await ExportService.generateAnimatedSvg(
+        originalSvg: provider.currentSvgString!,
+        elementAnimations: provider.elementAnimations,
+        trajectories: provider.activeWorkspace.trajectories,
+      );
+
       final file = File('${settings.exportPath}/animated_svg_${DateTime.now().millisecondsSinceEpoch}.svg');
-      await file.writeAsString(provider.currentSvgString!, flush: true);
+      await file.writeAsString(animatedSvg, flush: true);
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(

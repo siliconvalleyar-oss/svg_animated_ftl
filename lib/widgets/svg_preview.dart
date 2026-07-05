@@ -14,8 +14,9 @@ import 'individual_elements_view.dart';
 
 class SvgPreview extends StatefulWidget {
   final double dimOpacity;
+  final double selectedOpacity;
 
-  const SvgPreview({Key? key, this.dimOpacity = 0.5}) : super(key: key);
+  const SvgPreview({Key? key, this.dimOpacity = 0.5, this.selectedOpacity = 1.0}) : super(key: key);
 
   @override
   State<SvgPreview> createState() => _SvgPreviewState();
@@ -60,7 +61,7 @@ class _SvgPreviewState extends State<SvgPreview> {
                   minScale: AppConstants.minZoom,
                   maxScale: AppConstants.maxZoom,
                   child: hasAnimations
-                      ? IndividualElementsView(dimOpacity: widget.dimOpacity)
+                      ? IndividualElementsView(dimOpacity: widget.dimOpacity, selectedOpacity: widget.selectedOpacity)
                       : AnimatedOpacity(
                           duration: const Duration(milliseconds: 200),
                           opacity: hasSelection ? widget.dimOpacity : 1.0,
@@ -83,24 +84,6 @@ class _SvgPreviewState extends State<SvgPreview> {
                         width: 2,
                       ),
                       borderRadius: BorderRadius.circular(4),
-                    ),
-                  ),
-                ),
-
-              // Selection count badge
-              if (hasSelection)
-                Positioned(
-                  top: 8,
-                  left: 8,
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                    decoration: BoxDecoration(
-                      color: AppColors.accent.withValues(alpha: 0.85),
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    child: Text(
-                      '${provider.activeWorkspace.selectedGroupElements.length} sel.',
-                      style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.w600),
                     ),
                   ),
                 ),
@@ -142,9 +125,9 @@ class _SvgPreviewState extends State<SvgPreview> {
 
   double _getAverageSpeed(SvgProvider provider) {
     final configs = provider.elementAnimations.values;
-    if (configs.isEmpty) return 16.0;
+    if (configs.isEmpty) return 30.0;
     final speeds = configs.where((c) => c.presetId != null).map((c) => c.speed);
-    if (speeds.isEmpty) return 16.0;
+    if (speeds.isEmpty) return 30.0;
     return speeds.reduce((a, b) => a + b) / speeds.length;
   }
 }

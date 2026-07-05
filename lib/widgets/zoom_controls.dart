@@ -8,43 +8,54 @@ class ZoomControls extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Positioned(
-      right: 8,
-      top: 8,
-      child: Column(
-        children: [
-          _buildButton(
-            icon: Icons.add,
-            onTap: () {
-              if (controller != null) {
-                final matrix = controller!.value.clone();
-                final scaleMatrix = Matrix4.diagonal3Values(1.3, 1.3, 1.0);
-                controller!.value = scaleMatrix * matrix;
-              }
-            },
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final viewportW = constraints.maxWidth;
+        final viewportH = constraints.maxHeight;
+        return Positioned(
+          right: 8,
+          top: 8,
+          child: Column(
+            children: [
+              _buildButton(
+                icon: Icons.add,
+                onTap: () {
+                  if (controller != null) {
+                    final matrix = controller!.value.clone();
+                    final scaleMatrix = Matrix4.diagonal3Values(1.03, 1.03, 1.0);
+                    controller!.value = scaleMatrix * matrix;
+                  }
+                },
+              ),
+              const SizedBox(height: 4),
+              _buildButton(
+                icon: Icons.remove,
+                onTap: () {
+                  if (controller != null) {
+                    final matrix = controller!.value.clone();
+                    final scaleMatrix = Matrix4.diagonal3Values(0.97, 0.97, 1.0);
+                    controller!.value = scaleMatrix * matrix;
+                  }
+                },
+              ),
+              const SizedBox(height: 4),
+              _buildButton(
+                icon: Icons.center_focus_strong,
+                onTap: () {
+                  if (controller != null) {
+                    final current = controller!.value.clone();
+                    final scale = current.getMaxScaleOnAxis();
+                    final tx = viewportW / 2 * (1 - scale);
+                    final ty = viewportH / 2 * (1 - scale);
+                    current.setTranslationRaw(tx, ty, 0);
+                    controller!.value = current;
+                  }
+                },
+              ),
+            ],
           ),
-          const SizedBox(height: 4),
-          _buildButton(
-            icon: Icons.remove,
-            onTap: () {
-              if (controller != null) {
-                final matrix = controller!.value.clone();
-                final scaleMatrix = Matrix4.diagonal3Values(0.7, 0.7, 1.0);
-                controller!.value = scaleMatrix * matrix;
-              }
-            },
-          ),
-          const SizedBox(height: 4),
-          _buildButton(
-            icon: Icons.center_focus_strong,
-            onTap: () {
-              if (controller != null) {
-                controller!.value = Matrix4.identity();
-              }
-            },
-          ),
-        ],
-      ),
+        );
+      },
     );
   }
 

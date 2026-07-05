@@ -32,30 +32,6 @@ class _PiecesOverlayState extends State<PiecesOverlay> {
               ),
             ),
 
-            // Mode indicator
-            Positioned(
-              top: 8,
-              right: 8,
-              child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                decoration: BoxDecoration(
-                  color: AppColors.accent.withValues(alpha: 0.85),
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child: const Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(Icons.touch_app, color: Colors.white, size: 12),
-                    SizedBox(width: 4),
-                    Text(
-                      'Modo Piezas',
-                      style: TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.w600),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-
             // Drag handler for selected pieces
             if (selected.isNotEmpty)
               Positioned.fill(
