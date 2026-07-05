@@ -538,7 +538,7 @@ void main() {
       expect(find.byType(TrajectoryOverlay), findsOneWidget);
     });
 
-    testWidgets('shows error message for invalid SVG', (tester) async {
+    testWidgets('shows error state for invalid SVG', (tester) async {
       final provider = MockSvgProvider();
       provider.animationPlaying = false;
       provider.setSvgString('not valid svg');
@@ -549,8 +549,11 @@ void main() {
       ));
       await tester.pump();
 
-      // Should show error text
-      expect(find.textContaining('Error'), findsWidgets);
+      // EmptyState should NOT be shown (SVG string is set)
+      expect(find.text('Sin SVG cargado'), findsNothing);
+
+      // SvgPreview should be rendered (not empty)
+      expect(find.byType(SvgPreview), findsOneWidget);
     });
   });
 }

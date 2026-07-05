@@ -9,6 +9,10 @@ import '../core/constants.dart';
 import 'animation_scope.dart';
 
 class IndividualElementsView extends StatelessWidget {
+  final double dimOpacity;
+
+  const IndividualElementsView({Key? key, this.dimOpacity = 0.5}) : super(key: key);
+
   @override
   Widget build(BuildContext context) {
     return Consumer<SvgProvider>(
@@ -24,7 +28,6 @@ class IndividualElementsView extends StatelessWidget {
         }
 
         final ctrl = AnimationScope.of(context);
-        final isPlaying = provider.animationPlaying;
         final selectedElements = provider.activeWorkspace.selectedGroupElements;
         final hasSelection = selectedElements.isNotEmpty;
 
@@ -32,16 +35,13 @@ class IndividualElementsView extends StatelessWidget {
           builder: (context, constraints) {
             final vw = parseResult.viewBoxWidth;
             final vh = parseResult.viewBoxHeight;
-            final scaleX = constraints.maxWidth / vw;
-            final scaleY = constraints.maxHeight / vh;
-            final scale = scaleX < scaleY ? scaleX : scaleY;
 
             return Stack(
               children: [
                 // Full SVG as background (dimmed if selection active)
                 if (hasSelection)
                   Opacity(
-                    opacity: 0.2,
+                    opacity: dimOpacity,
                     child: SvgPicture.string(
                       provider.currentSvgString!,
                       fit: BoxFit.contain,
@@ -54,7 +54,6 @@ class IndividualElementsView extends StatelessWidget {
                   final config = provider.elementAnimations[index];
                   final isSelected = selectedElements.contains(index);
 
-                  // Build mini SVG for this element
                   final miniSvg = _buildMiniSvg(
                     svgElement: svgEl.element,
                     viewBoxWidth: vw,
@@ -66,9 +65,11 @@ class IndividualElementsView extends StatelessWidget {
                     fit: BoxFit.contain,
                   );
 
-                  // Apply animation if config exists and has preset
+                  // Apply animation if config has preset AND controller is running
                   if (config?.presetId != null && ctrl != null) {
-                    final animValue = _buildAnimValue(ctrl, config!.speed);
+                    // Create animation that runs from 0 to 1 over the controller's duration
+                    final animValue = Tween<double>(begin: 0.0, end: 1.0).animate(ctrl);
+
                     elementWidget = AnimationEngine.buildAnimation(
                       presetId: config!.presetId!,
                       child: elementWidget,
@@ -83,15 +84,10 @@ class IndividualElementsView extends StatelessWidget {
                     );
                   }
 
-                  // Highlight selected elements
-                  if (isSelected && hasSelection) {
-                    elementWidget = Container(
-                      decoration: BoxDecoration(
-                        border: Border.all(
-                          color: AppColors.accent.withValues(alpha: 0.8),
-                          width: 2,
-                        ),
-                      ),
+                  // Non-selected pieces get dimmed when there's a selection
+                  if (hasSelection && !isSelected && config?.presetId == null) {
+                    elementWidget = Opacity(
+                      opacity: 1.0 - dimOpacity,
                       child: elementWidget,
                     );
                   }
@@ -116,15 +112,5 @@ class IndividualElementsView extends StatelessWidget {
     buffer.writeln(svgElement.toXmlString());
     buffer.writeln('</svg>');
     return buffer.toString();
-  }
-
-  Animation<double> _buildAnimValue(AnimationController ctrl, double speed) {
-    // Scale the animation duration based on speed
-    // speed=4 means 4 seconds per cycle (slow)
-    final tween = Tween<double>(begin: 0.0, end: 1.0);
-    return tween.animate(CurvedAnimation(
-      parent: ctrl,
-      curve: Curves.linear,
-    ));
   }
 }

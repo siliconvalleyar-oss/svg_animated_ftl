@@ -29,11 +29,15 @@ class _HomeScreenState extends State<HomeScreen> {
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: _buildAppBar(),
-      body: Column(
-        children: [
-          Expanded(child: SvgPreview()),
-          if (_selectedPanel >= 0) _buildPanel(),
-        ],
+      body: Consumer<SettingsProvider>(
+        builder: (context, settings, _) {
+          return Column(
+            children: [
+              Expanded(child: SvgPreview(dimOpacity: settings.dimOpacity)),
+              if (_selectedPanel >= 0) _buildPanel(),
+            ],
+          );
+        },
       ),
       bottomNavigationBar: BottomNav(
         selectedIndex: _selectedPanel,
@@ -299,60 +303,94 @@ class _HomeScreenState extends State<HomeScreen> {
   void _showSettings() {
     final settings = context.read<SettingsProvider>();
     final controller = TextEditingController(text: settings.exportPath);
+    double tempDimOpacity = settings.dimOpacity;
 
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        backgroundColor: AppColors.surface2,
-        title: const Text('Configuración', style: TextStyle(color: AppColors.text)),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text('Ruta de exportación/importación:', style: TextStyle(fontSize: 12, color: AppColors.textDim)),
-            const SizedBox(height: 8),
-            TextField(
-              controller: controller,
-              style: const TextStyle(color: AppColors.text, fontSize: 13),
-              decoration: InputDecoration(
-                hintText: '/sdcard/Pictures/svg_animated_ftl',
-                hintStyle: const TextStyle(color: AppColors.textDim),
-                border: const OutlineInputBorder(),
-                suffixIcon: IconButton(
-                  icon: const Icon(Icons.restore, size: 18),
-                  onPressed: () {
-                    controller.text = '/sdcard/Pictures/svg_animated_ftl';
-                  },
-                ),
+      builder: (context) => StatefulBuilder(
+        builder: (context, setDialogState) {
+          return AlertDialog(
+            backgroundColor: AppColors.surface2,
+            title: const Text('Configuración', style: TextStyle(color: AppColors.text)),
+            content: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text('Ruta de exportación/importación:', style: TextStyle(fontSize: 12, color: AppColors.textDim)),
+                  const SizedBox(height: 8),
+                  TextField(
+                    controller: controller,
+                    style: const TextStyle(color: AppColors.text, fontSize: 13),
+                    decoration: InputDecoration(
+                      hintText: '/sdcard/Pictures/svg_animated_ftl',
+                      hintStyle: const TextStyle(color: AppColors.textDim),
+                      border: const OutlineInputBorder(),
+                      suffixIcon: IconButton(
+                        icon: const Icon(Icons.restore, size: 18),
+                        onPressed: () {
+                          controller.text = '/sdcard/Pictures/svg_animated_ftl';
+                        },
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  const Text('Opacidad de piezas no seleccionadas:', style: TextStyle(fontSize: 12, color: AppColors.textDim)),
+                  const SizedBox(height: 4),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Slider(
+                          value: tempDimOpacity,
+                          min: 0.0,
+                          max: 1.0,
+                          divisions: 20,
+                          activeColor: AppColors.accent,
+                          onChanged: (v) {
+                            setDialogState(() => tempDimOpacity = v);
+                          },
+                        ),
+                      ),
+                      SizedBox(
+                        width: 40,
+                        child: Text(
+                          '${(tempDimOpacity * 100).toInt()}%',
+                          style: const TextStyle(fontSize: 11, color: AppColors.text),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
               ),
             ),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Cancelar'),
-          ),
-          TextButton(
-            onPressed: () async {
-              final path = controller.text.trim();
-              if (path.isNotEmpty) {
-                final dir = Directory(path);
-                if (!await dir.exists()) {
-                  await dir.create(recursive: true);
-                }
-                await settings.setExportPath(path);
-                if (mounted) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text('Ruta guardada: $path')),
-                  );
-                }
-              }
-              Navigator.pop(context);
-            },
-            child: const Text('Guardar', style: TextStyle(color: AppColors.accent)),
-          ),
-        ],
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: const Text('Cancelar'),
+              ),
+              TextButton(
+                onPressed: () async {
+                  final path = controller.text.trim();
+                  if (path.isNotEmpty) {
+                    final dir = Directory(path);
+                    if (!await dir.exists()) {
+                      await dir.create(recursive: true);
+                    }
+                    await settings.setExportPath(path);
+                  }
+                  await settings.setDimOpacity(tempDimOpacity);
+                  if (mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('Configuración guardada')),
+                    );
+                  }
+                  Navigator.pop(context);
+                },
+                child: const Text('Guardar', style: TextStyle(color: AppColors.accent)),
+              ),
+            ],
+          );
+        },
       ),
     );
   }
