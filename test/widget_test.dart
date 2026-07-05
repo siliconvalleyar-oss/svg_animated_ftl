@@ -21,13 +21,23 @@ import 'package:svg_animated_ftl/models/animation_config.dart';
 /// A minimal mock SettingsProvider for widget testing.
 class MockSettingsProvider extends ChangeNotifier implements SettingsProvider {
   String _exportPath = '/tmp/test';
+  double _dimOpacity = 0.5;
 
   @override
   String get exportPath => _exportPath;
 
   @override
+  double get dimOpacity => _dimOpacity;
+
+  @override
   Future<void> setExportPath(String path) async {
     _exportPath = path;
+    notifyListeners();
+  }
+
+  @override
+  Future<void> setDimOpacity(double opacity) async {
+    _dimOpacity = opacity;
     notifyListeners();
   }
 
