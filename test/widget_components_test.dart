@@ -10,6 +10,8 @@ import 'package:svg_animated_ftl/widgets/controls_panel.dart';
 import 'package:svg_animated_ftl/widgets/elements_list.dart';
 import 'package:svg_animated_ftl/widgets/pieces_overlay.dart';
 import 'package:svg_animated_ftl/widgets/background_layer.dart';
+import 'package:svg_animated_ftl/widgets/shapes_grid.dart';
+import 'package:svg_animated_ftl/screens/home_screen.dart';
 import 'package:svg_animated_ftl/models/background_image.dart';
 import 'package:svg_animated_ftl/core/theme.dart';
 import 'package:svg_animated_ftl/core/constants.dart';
@@ -57,8 +59,12 @@ class MockSvgProvider extends ChangeNotifier implements SvgProvider {
   @override
   void renameWorkspace(String name) {}
 
+  String? loadSvgStringCalledWith;
+
   @override
-  Future<void> loadSvgString(String svgString, {bool createNewWorkspace = true}) async {}
+  Future<void> loadSvgString(String svgString, {bool createNewWorkspace = true}) async {
+    loadSvgStringCalledWith = svgString;
+  }
 
   @override
   void toggleElementSelection(int index) {
@@ -1576,6 +1582,167 @@ void main() {
       await tester.pumpWidget(buildBg(provider));
 
       expect(find.byType(Positioned), findsNothing);
+    });
+  });
+
+  group('ShapesGrid', () {
+    /// Helper: create test app with tall viewport so all 12 GridView items render.
+    /// GridView.builder uses lazy rendering — items off-screen are NOT built.
+    /// Default test viewport is 800x600 which only shows ~6 items (2 rows × 3 cols).
+    /// We use setSurfaceSize(800, 1400) to show all 4 rows.
+    Future<void> pumpGrid(
+      WidgetTester tester,
+      MockSvgProvider provider,
+    ) async {
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+      await tester.binding.setSurfaceSize(const Size(800, 1400));
+      await tester.pumpWidget(createTestApp(
+        home: Scaffold(body: ShapesGrid()),
+        provider: provider,
+      ));
+    }
+
+    testWidgets('renders GridView with all 12 shape names', (tester) async {
+      final provider = MockSvgProvider();
+      await pumpGrid(tester, provider);
+
+      expect(find.byType(GridView), findsOneWidget);
+      for (final shape in AnimationPresets.shapes) {
+        expect(find.text(shape['name']), findsOneWidget);
+      }
+    });
+
+    testWidgets('shape name uses textDim color and small font', (tester) async {
+      final provider = MockSvgProvider();
+      await pumpGrid(tester, provider);
+
+      final text = tester.widget<Text>(find.text('Círculo'));
+      expect(text.style?.color, equals(AppColors.textDim));
+      expect(text.style?.fontSize, equals(10.0));
+    });
+
+    testWidgets('shape container has surface2 background with border', (tester) async {
+      final provider = MockSvgProvider();
+      await pumpGrid(tester, provider);
+
+      final container = tester.widget<Container>(
+        find.ancestor(of: find.text('Círculo'), matching: find.byType(Container)).first,
+      );
+      final decoration = container.decoration as BoxDecoration;
+      expect(decoration.color, equals(AppColors.surface2));
+      final border = decoration.border as Border;
+      expect(border.top.color, equals(AppColors.border));
+    });
+
+    testWidgets('tapping shape loads its SVG via provider', (tester) async {
+      final provider = MockSvgProvider();
+      await pumpGrid(tester, provider);
+
+      await tester.tap(find.text('Círculo'));
+      await tester.pump();
+
+      expect(provider.loadSvgStringCalledWith, isNotNull);
+      expect(provider.loadSvgStringCalledWith, contains('<circle'));
+    });
+
+    testWidgets('tapping different shapes loads different SVGs', (tester) async {
+      final provider = MockSvgProvider();
+      await pumpGrid(tester, provider);
+
+      await tester.tap(find.text('Estrella'));
+      expect(provider.loadSvgStringCalledWith, contains('<polygon'));
+
+      provider.loadSvgStringCalledWith = null;
+      await tester.tap(find.text('Corazón'));
+      expect(provider.loadSvgStringCalledWith, contains('<path'));
+    });
+
+    testWidgets('GridView has 3 columns and correct spacing', (tester) async {
+      final provider = MockSvgProvider();
+      await pumpGrid(tester, provider);
+
+      final gridView = tester.widget<GridView>(find.byType(GridView));
+      final delegate = gridView.gridDelegate as SliverGridDelegateWithFixedCrossAxisCount;
+      expect(delegate.crossAxisCount, equals(3));
+      expect(delegate.mainAxisSpacing, equals(8.0));
+      expect(delegate.crossAxisSpacing, equals(8.0));
+    });
+
+    testWidgets('renders correct 12 shapes count via presets', (tester) async {
+      expect(AnimationPresets.shapes.length, equals(12));
+    });
+  });
+
+  group('ImportPanel (via HomeScreen)', () {
+    testWidgets('tapping Importar tab shows Pegar SVG button', (tester) async {
+      final provider = MockSvgProvider();
+      await tester.pumpWidget(createTestApp(
+        home: HomeScreen(),
+        provider: provider,
+      ));
+      await tester.pump();
+
+      await tester.tap(find.text('Importar'));
+      await tester.pump();
+
+      expect(find.text('Pegar SVG'), findsOneWidget);
+    });
+
+    testWidgets('Pegar SVG button opens paste dialog', (tester) async {
+      final provider = MockSvgProvider();
+      await tester.pumpWidget(createTestApp(
+        home: HomeScreen(),
+        provider: provider,
+      ));
+      await tester.pump();
+
+      await tester.tap(find.text('Importar'));
+      await tester.pump();
+
+      await tester.tap(find.text('Pegar SVG'));
+      await tester.pump();
+
+      expect(find.text('Pegar código SVG'), findsOneWidget);
+      expect(find.text('Cancelar'), findsWidgets);
+      expect(find.text('Cargar'), findsOneWidget);
+    });
+
+    testWidgets('cancel paste dialog closes without loading', (tester) async {
+      final provider = MockSvgProvider();
+      await tester.pumpWidget(createTestApp(
+        home: HomeScreen(),
+        provider: provider,
+      ));
+      await tester.pump();
+
+      await tester.tap(find.text('Importar'));
+      await tester.pump();
+      await tester.tap(find.text('Pegar SVG'));
+      await tester.pump();
+
+      // Cancel
+      await tester.tap(find.text('Cancelar'));
+      await tester.pump();
+
+      expect(find.text('Pegar código SVG'), findsNothing);
+      expect(provider.loadSvgStringCalledWith, isNull);
+    });
+
+    testWidgets('Import tab shows ShapesGrid below button', (tester) async {
+      final provider = MockSvgProvider();
+      await tester.pumpWidget(createTestApp(
+        home: HomeScreen(),
+        provider: provider,
+      ));
+      await tester.pump();
+
+      await tester.tap(find.text('Importar'));
+      await tester.pump();
+
+      // Both the button and shapes grid should be visible
+      expect(find.text('Pegar SVG'), findsOneWidget);
+      expect(find.text('Círculo'), findsOneWidget);
+      expect(find.text('Cuadrado'), findsOneWidget);
     });
   });
 }

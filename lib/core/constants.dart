@@ -66,7 +66,7 @@ class AppConstants {
   static const double minZoom = 0.2;
   static const double maxZoom = 5.0;
   static const int maxUndoSteps = 50;
-  static const double defaultSpeed = 1.0;
+  static const double defaultSpeed = 4.0;
   static const double defaultDelay = 0.0;
   static const String defaultIteration = 'infinite';
   static const String defaultDirection = 'normal';

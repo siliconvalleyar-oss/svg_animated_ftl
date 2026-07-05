@@ -49,13 +49,23 @@ class _HomeScreenState extends State<HomeScreen> {
   PreferredSizeWidget _buildAppBar() {
     return AppBar(
       backgroundColor: AppColors.surface,
-      title: Consumer<SvgProvider>(
-        builder: (context, provider, _) {
-          return Text(
-            provider.activeWorkspace.name,
-            style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
-          );
-        },
+      title: GestureDetector(
+        onTap: _renameWorkspace,
+        child: Consumer<SvgProvider>(
+          builder: (context, provider, _) {
+            return Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  provider.activeWorkspace.name,
+                  style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+                ),
+                const SizedBox(width: 4),
+                const Icon(Icons.edit, size: 14, color: AppColors.textDim),
+              ],
+            );
+          },
+        ),
       ),
       actions: [
         IconButton(
@@ -81,9 +91,7 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget _buildPanel() {
     switch (_selectedPanel) {
       case 0:
-        return PanelSlider(
-          child: _buildImportPanel(),
-        );
+        return PanelSlider(child: _buildImportPanel());
       case 1:
         return PanelSlider(
           child: Column(
@@ -96,9 +104,7 @@ class _HomeScreenState extends State<HomeScreen> {
       case 2:
         return PanelSlider(child: ControlsPanel());
       case 3:
-        return PanelSlider(
-          child: _buildPiecesPanel(),
-        );
+        return PanelSlider(child: _buildPiecesPanel());
       case 4:
         return PanelSlider(child: _buildExportPanel());
       default:
@@ -107,29 +113,70 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Widget _buildImportPanel() {
-    return Column(
-      children: [
-        Padding(
-          padding: const EdgeInsets.all(8),
-          child: Row(
-            children: [
-              Expanded(
-                child: ElevatedButton.icon(
-                  onPressed: _importSvgFromString,
-                  icon: const Icon(Icons.code, size: 20),
-                  label: const Text('Pegar SVG'),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.accent,
-                    foregroundColor: Colors.white,
-                    padding: const EdgeInsets.symmetric(vertical: 12),
+    return Consumer<SettingsProvider>(
+      builder: (context, settings, _) {
+        return Column(
+          children: [
+            Padding(
+              padding: const EdgeInsets.all(8),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: ElevatedButton.icon(
+                      onPressed: _importSvgFromString,
+                      icon: const Icon(Icons.code, size: 18),
+                      label: const Text('Pegar SVG'),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppColors.accent,
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(vertical: 10),
+                      ),
+                    ),
                   ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: ElevatedButton.icon(
+                      onPressed: () => _importFromFolder(settings.exportPath),
+                      icon: const Icon(Icons.folder_open, size: 18),
+                      label: const Text('Cargar SVG'),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppColors.surface2,
+                        foregroundColor: AppColors.text,
+                        padding: const EdgeInsets.symmetric(vertical: 10),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 8),
+              child: Container(
+                padding: const EdgeInsets.all(6),
+                decoration: BoxDecoration(
+                  color: AppColors.surface2.withValues(alpha: 0.5),
+                  borderRadius: BorderRadius.circular(6),
+                ),
+                child: Row(
+                  children: [
+                    const Icon(Icons.folder, size: 12, color: AppColors.textDim),
+                    const SizedBox(width: 4),
+                    Expanded(
+                      child: Text(
+                        settings.exportPath,
+                        style: const TextStyle(fontSize: 9, color: AppColors.textDim),
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                  ],
                 ),
               ),
-            ],
-          ),
-        ),
-        Expanded(child: ShapesGrid()),
-      ],
+            ),
+            const SizedBox(height: 8),
+            Expanded(child: ShapesGrid()),
+          ],
+        );
+      },
     );
   }
 
@@ -138,36 +185,25 @@ class _HomeScreenState extends State<HomeScreen> {
       children: [
         Padding(
           padding: const EdgeInsets.all(8),
-          child: Row(
-            children: [
-              Expanded(
-                child: Consumer<SvgProvider>(
-                  builder: (context, provider, _) {
-                    return ElevatedButton.icon(
-                      onPressed: () => provider.togglePiecesMode(),
-                      icon: Icon(
-                        provider.activeWorkspace.isPiecesMode
-                            ? Icons.grid_off
-                            : Icons.grid_view,
-                        size: 20,
-                      ),
-                      label: Text(
-                        provider.activeWorkspace.isPiecesMode
-                            ? 'Desactivar modo piezas'
-                            : 'Activar modo piezas',
-                      ),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: provider.activeWorkspace.isPiecesMode
-                            ? AppColors.danger
-                            : AppColors.accent,
-                        foregroundColor: Colors.white,
-                        padding: const EdgeInsets.symmetric(vertical: 12),
-                      ),
-                    );
-                  },
+          child: Consumer<SvgProvider>(
+            builder: (context, provider, _) {
+              return ElevatedButton.icon(
+                onPressed: () => provider.togglePiecesMode(),
+                icon: Icon(
+                  provider.activeWorkspace.isPiecesMode ? Icons.grid_off : Icons.grid_view,
+                  size: 18,
                 ),
-              ),
-            ],
+                label: Text(
+                  provider.activeWorkspace.isPiecesMode ? 'Desactivar piezas' : 'Activar piezas',
+                ),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: provider.activeWorkspace.isPiecesMode ? AppColors.danger : AppColors.accent,
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(vertical: 10),
+                  minimumSize: const Size(double.infinity, 40),
+                ),
+              );
+            },
           ),
         ),
         Expanded(child: ElementsList()),
@@ -183,21 +219,20 @@ class _HomeScreenState extends State<HomeScreen> {
           child: Column(
             children: [
               Container(
-                padding: const EdgeInsets.all(8),
+                padding: const EdgeInsets.all(6),
                 margin: const EdgeInsets.only(bottom: 8),
                 decoration: BoxDecoration(
-                  color: AppColors.surface2,
-                  borderRadius: BorderRadius.circular(8),
-                  border: Border.all(color: AppColors.border),
+                  color: AppColors.surface2.withValues(alpha: 0.5),
+                  borderRadius: BorderRadius.circular(6),
                 ),
                 child: Row(
                   children: [
-                    const Icon(Icons.folder, size: 16, color: AppColors.textDim),
-                    const SizedBox(width: 8),
+                    const Icon(Icons.folder, size: 12, color: AppColors.textDim),
+                    const SizedBox(width: 4),
                     Expanded(
                       child: Text(
                         settings.exportPath,
-                        style: const TextStyle(fontSize: 11, color: AppColors.textDim),
+                        style: const TextStyle(fontSize: 9, color: AppColors.textDim),
                         overflow: TextOverflow.ellipsis,
                       ),
                     ),
@@ -208,12 +243,12 @@ class _HomeScreenState extends State<HomeScreen> {
                 width: double.infinity,
                 child: ElevatedButton.icon(
                   onPressed: _exportSvg,
-                  icon: const Icon(Icons.save_alt, size: 20),
-                  label: const Text('Exportar SVG Animado'),
+                  icon: const Icon(Icons.save_alt, size: 18),
+                  label: const Text('Exportar SVG'),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: AppColors.success,
                     foregroundColor: Colors.white,
-                    padding: const EdgeInsets.symmetric(vertical: 12),
+                    padding: const EdgeInsets.symmetric(vertical: 10),
                   ),
                 ),
               ),
@@ -221,6 +256,43 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
         );
       },
+    );
+  }
+
+  void _renameWorkspace() {
+    final provider = context.read<SvgProvider>();
+    final controller = TextEditingController(text: provider.activeWorkspace.name);
+
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: AppColors.surface2,
+        title: const Text('Renombrar espacio', style: TextStyle(color: AppColors.text)),
+        content: TextField(
+          controller: controller,
+          autofocus: true,
+          style: const TextStyle(color: AppColors.text),
+          decoration: const InputDecoration(
+            hintText: 'Nombre del espacio',
+            hintStyle: TextStyle(color: AppColors.textDim),
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancelar'),
+          ),
+          TextButton(
+            onPressed: () {
+              if (controller.text.trim().isNotEmpty) {
+                provider.renameWorkspace(controller.text.trim());
+              }
+              Navigator.pop(context);
+            },
+            child: const Text('Guardar', style: TextStyle(color: AppColors.accent)),
+          ),
+        ],
+      ),
     );
   }
 
@@ -237,7 +309,7 @@ class _HomeScreenState extends State<HomeScreen> {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text('Ruta de exportación:', style: TextStyle(fontSize: 12, color: AppColors.textDim)),
+            const Text('Ruta de exportación/importación:', style: TextStyle(fontSize: 12, color: AppColors.textDim)),
             const SizedBox(height: 8),
             TextField(
               controller: controller,
@@ -265,7 +337,6 @@ class _HomeScreenState extends State<HomeScreen> {
             onPressed: () async {
               final path = controller.text.trim();
               if (path.isNotEmpty) {
-                // Create directory if it doesn't exist
                 final dir = Directory(path);
                 if (!await dir.exists()) {
                   await dir.create(recursive: true);
@@ -339,6 +410,73 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
+  Future<void> _importFromFolder(String folderPath) async {
+    try {
+      final dir = Directory(folderPath);
+      if (!await dir.exists()) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Carpeta no encontrada: $folderPath')),
+          );
+        }
+        return;
+      }
+
+      final svgFiles = await dir
+          .list()
+          .where((f) => f.path.endsWith('.svg'))
+          .toList();
+
+      if (svgFiles.isEmpty) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('No hay archivos SVG en la carpeta')),
+          );
+        }
+        return;
+      }
+
+      final selectedFile = await showDialog<String>(
+        context: context,
+        builder: (context) => SimpleDialog(
+          backgroundColor: AppColors.surface2,
+          title: const Text('Seleccionar SVG', style: TextStyle(color: AppColors.text)),
+          children: svgFiles.map((f) {
+            final name = f.path.split('/').last;
+            return SimpleDialogOption(
+              onPressed: () => Navigator.pop(context, f.path),
+              child: Text(name, style: const TextStyle(color: AppColors.text)),
+            );
+          }).toList(),
+        ),
+      );
+
+      if (selectedFile == null) return;
+
+      final file = File(selectedFile);
+      if (!await file.exists()) return;
+
+      final content = await file.readAsString();
+      if (content.isEmpty) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('El archivo está vacío')),
+          );
+        }
+        return;
+      }
+
+      await context.read<SvgProvider>().loadSvgString(content);
+    } catch (e) {
+      debugPrint('Error importing from folder: $e');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error al importar: ${e.toString()}')),
+        );
+      }
+    }
+  }
+
   Future<void> _exportSvg() async {
     try {
       final provider = context.read<SvgProvider>();
@@ -353,7 +491,6 @@ class _HomeScreenState extends State<HomeScreen> {
         return;
       }
 
-      // Create directory if it doesn't exist
       final dir = Directory(settings.exportPath);
       if (!await dir.exists()) {
         await dir.create(recursive: true);
@@ -364,7 +501,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Guardado en: ${file.path}')),
+          SnackBar(content: Text('Guardado: ${file.path}')),
         );
       }
     } catch (e) {

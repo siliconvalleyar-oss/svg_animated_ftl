@@ -12,12 +12,12 @@ class AnimationGrid extends StatelessWidget {
         final config = provider.elementAnimations[selectedElement];
 
         return GridView.builder(
-          padding: const EdgeInsets.all(8),
+          padding: const EdgeInsets.all(6),
           gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-            crossAxisCount: 3,
-            mainAxisSpacing: 8,
-            crossAxisSpacing: 8,
-            childAspectRatio: 1,
+            crossAxisCount: 4,
+            mainAxisSpacing: 4,
+            crossAxisSpacing: 4,
+            childAspectRatio: 0.9,
           ),
           itemCount: AnimationPresets.presets.length,
           itemBuilder: (context, index) {
@@ -35,11 +35,12 @@ class AnimationGrid extends StatelessWidget {
                   color: isActive
                       ? Color(int.parse(preset['color'].replaceFirst('#', '0xFF')))
                       : AppColors.surface2,
-                  borderRadius: BorderRadius.circular(8),
+                  borderRadius: BorderRadius.circular(6),
                   border: Border.all(
                     color: isActive
                         ? Color(int.parse(preset['color'].replaceFirst('#', '0xFF')))
                         : AppColors.border,
+                    width: 1,
                   ),
                 ),
                 child: Column(
@@ -47,14 +48,14 @@ class AnimationGrid extends StatelessWidget {
                   children: [
                     Icon(
                       _getIcon(preset['id']),
-                      size: 24,
+                      size: 18,
                       color: isActive ? Colors.white : AppColors.textDim,
                     ),
-                    const SizedBox(height: 4),
+                    const SizedBox(height: 2),
                     Text(
                       preset['name'],
                       style: TextStyle(
-                        fontSize: 10,
+                        fontSize: 8,
                         color: isActive ? Colors.white : AppColors.textDim,
                         fontWeight: isActive ? FontWeight.w600 : FontWeight.normal,
                       ),

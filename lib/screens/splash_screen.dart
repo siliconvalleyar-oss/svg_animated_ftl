@@ -56,7 +56,7 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               SvgPicture.asset(
-                'assets/car_animated.svg',
+                'assets/svg/car_animated.svg',
                 width: 280,
                 height: 280,
                 placeholderBuilder: (context) => const SizedBox(

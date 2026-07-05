@@ -63,7 +63,7 @@ class AnimationConfig extends HiveObject {
 
   AnimationConfig({
     this.presetId,
-    this.speed = 1.0,
+    this.speed = 4.0,
     this.delay = 0.0,
     this.iter = 'infinite',
     this.dir = 'normal',
@@ -152,7 +152,7 @@ class AnimationConfig extends HiveObject {
   factory AnimationConfig.fromJson(Map<String, dynamic> json) {
     return AnimationConfig(
       presetId: json['presetId'],
-      speed: (json['speed'] ?? 1.0).toDouble(),
+      speed: (json['speed'] ?? 4.0).toDouble(),
       delay: (json['delay'] ?? 0.0).toDouble(),
       iter: json['iter'] ?? 'infinite',
       dir: json['dir'] ?? 'normal',

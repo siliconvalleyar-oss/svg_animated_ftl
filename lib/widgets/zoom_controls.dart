@@ -4,33 +4,49 @@ import '../providers/svg_provider.dart';
 import '../core/constants.dart';
 
 class ZoomControls extends StatelessWidget {
+  final TransformationController? controller;
+
+  const ZoomControls({Key? key, this.controller}) : super(key: key);
+
   @override
   Widget build(BuildContext context) {
-    return Consumer<SvgProvider>(
-      builder: (context, provider, _) {
-        return Positioned(
-          right: 8,
-          top: 8,
-          child: Column(
-            children: [
-              _buildButton(
-                icon: Icons.zoom_in,
-                onTap: () => provider.setZoom(provider.activeWorkspace.zoomLevel + 0.2),
-              ),
-              const SizedBox(height: 4),
-              _buildButton(
-                icon: Icons.zoom_out,
-                onTap: () => provider.setZoom(provider.activeWorkspace.zoomLevel - 0.2),
-              ),
-              const SizedBox(height: 4),
-              _buildButton(
-                icon: Icons.center_focus_strong,
-                onTap: () => provider.setZoom(1.0),
-              ),
-            ],
+    return Positioned(
+      right: 8,
+      top: 8,
+      child: Column(
+        children: [
+          _buildButton(
+            icon: Icons.add,
+            onTap: () {
+              if (controller != null) {
+                final matrix = controller!.value.clone();
+                matrix.scale(1.3);
+                controller!.value = matrix;
+              }
+            },
           ),
-        );
-      },
+          const SizedBox(height: 4),
+          _buildButton(
+            icon: Icons.remove,
+            onTap: () {
+              if (controller != null) {
+                final matrix = controller!.value.clone();
+                matrix.scale(0.7);
+                controller!.value = matrix;
+              }
+            },
+          ),
+          const SizedBox(height: 4),
+          _buildButton(
+            icon: Icons.center_focus_strong,
+            onTap: () {
+              if (controller != null) {
+                controller!.value = Matrix4.identity();
+              }
+            },
+          ),
+        ],
+      ),
     );
   }
 
@@ -38,14 +54,14 @@ class ZoomControls extends StatelessWidget {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        width: 36,
-        height: 36,
+        width: 32,
+        height: 32,
         decoration: BoxDecoration(
-          color: AppColors.surface2,
+          color: AppColors.surface2.withValues(alpha: 0.8),
           borderRadius: BorderRadius.circular(8),
           border: Border.all(color: AppColors.border),
         ),
-        child: Icon(icon, size: 20, color: AppColors.textDim),
+        child: Icon(icon, size: 18, color: AppColors.textDim),
       ),
     );
   }

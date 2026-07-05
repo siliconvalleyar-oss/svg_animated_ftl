@@ -40,7 +40,7 @@ class SvgProvider extends ChangeNotifier {
     try {
       await _loadWorkspaces();
       if (_workspaces.isEmpty) {
-        _workspaces.add(Workspace(id: _generateId(), name: 'Espacio 1'));
+        _workspaces.add(Workspace(id: _generateId(), name: 'Workspace'));
       }
       if (activeWorkspace.originalSvgString == null) {
         try {
@@ -53,7 +53,7 @@ class SvgProvider extends ChangeNotifier {
       notifyListeners();
     } catch (e) {
       debugPrint('Error initializing: $e');
-      _workspaces = [Workspace(id: _generateId(), name: 'Espacio 1')];
+      _workspaces = [Workspace(id: _generateId(), name: 'Workspace')];
       notifyListeners();
     }
   }
@@ -65,7 +65,7 @@ class SvgProvider extends ChangeNotifier {
   void addWorkspace() {
     try {
       _saveActiveWorkspace();
-      final ws = Workspace(id: _generateId(), name: 'Espacio ${_workspaces.length + 1}');
+      final ws = Workspace(id: _generateId(), name: 'Workspace ${_workspaces.length + 1}');
       _workspaces.add(ws);
       _activeWorkspaceIndex = _workspaces.length - 1;
       _saveWorkspaces();
@@ -113,7 +113,7 @@ class SvgProvider extends ChangeNotifier {
       if (createNewWorkspace) {
         _saveActiveWorkspace();
         if (activeWorkspace.originalSvgString != null) {
-          final ws = Workspace(id: _generateId(), name: 'Espacio ${_workspaces.length + 1}');
+          final ws = Workspace(id: _generateId(), name: 'Workspace ${_workspaces.length + 1}');
           _workspaces.add(ws);
           _activeWorkspaceIndex = _workspaces.length - 1;
         }

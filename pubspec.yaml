@@ -30,6 +30,8 @@ flutter:
   assets:
     - assets/logo.svg
     - assets/example.svg
-    - assets/car_animated.svg
-    - assets/car_animated_01.svg
-    - assets/car_animated_04.svg
+    - assets/svg/car_animated.svg
+    - assets/svg/car_animated_01.svg
+    - assets/svg/car_animated_04.svg
+    - assets/svg/logo.svg
+    - assets/riv/

@@ -23,46 +23,80 @@ class SvgPreview extends StatelessWidget {
         _syncAnimationState(context, provider);
 
         final hasSelection = provider.activeWorkspace.selectedGroupElements.isNotEmpty;
+        final isPlaying = provider.animationPlaying;
 
         return Stack(
           children: [
             BackgroundLayer(),
 
-            // SVG with dimming when elements are selected
-            InteractiveViewer(
-              minScale: AppConstants.minZoom,
-              maxScale: AppConstants.maxZoom,
-              child: AnimatedOpacity(
-                duration: const Duration(milliseconds: 200),
-                opacity: hasSelection ? 0.25 : 1.0,
-                child: _buildAnimatedSvg(provider),
+            // SVG with zoom support
+            ClipRect(
+              child: InteractiveViewer(
+                minScale: AppConstants.minZoom,
+                maxScale: AppConstants.maxZoom,
+                child: AnimatedOpacity(
+                  duration: const Duration(milliseconds: 200),
+                  opacity: hasSelection ? 0.3 : 1.0,
+                  child: _buildAnimatedSvg(provider),
+                ),
               ),
             ),
 
-            // Selection indicator overlay
+            // Selection highlight border
+            if (hasSelection)
+              Positioned.fill(
+                child: Container(
+                  margin: const EdgeInsets.all(2),
+                  decoration: BoxDecoration(
+                    border: Border.all(
+                      color: AppColors.accent.withValues(alpha: 0.5),
+                      width: 2,
+                    ),
+                    borderRadius: BorderRadius.circular(4),
+                  ),
+                ),
+              ),
+
+            // Selection count badge
             if (hasSelection)
               Positioned(
                 top: 8,
                 left: 8,
                 child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                   decoration: BoxDecoration(
-                    color: AppColors.accent.withValues(alpha: 0.9),
-                    borderRadius: BorderRadius.circular(12),
+                    color: AppColors.accent.withValues(alpha: 0.85),
+                    borderRadius: BorderRadius.circular(10),
                   ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      const Icon(Icons.check_circle, color: Colors.white, size: 14),
-                      const SizedBox(width: 4),
-                      Text(
-                        '${provider.activeWorkspace.selectedGroupElements.length} seleccionadas',
-                        style: const TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.w600),
-                      ),
-                    ],
+                  child: Text(
+                    '${provider.activeWorkspace.selectedGroupElements.length} sel.',
+                    style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.w600),
                   ),
                 ),
               ),
+
+            // Play/Pause button - minimal gray circle
+            Positioned(
+              bottom: 8,
+              right: 8,
+              child: GestureDetector(
+                onTap: () => provider.togglePlayPause(),
+                child: Container(
+                  width: 40,
+                  height: 40,
+                  decoration: BoxDecoration(
+                    color: AppColors.surface2.withValues(alpha: 0.9),
+                    shape: BoxShape.circle,
+                    border: Border.all(color: AppColors.border),
+                  ),
+                  child: Icon(
+                    isPlaying ? Icons.pause_rounded : Icons.play_arrow_rounded,
+                    color: AppColors.text,
+                    size: 22,
+                  ),
+                ),
+              ),
+            ),
 
             if (provider.activeWorkspace.isTrajectoryMode)
               TrajectoryOverlay(),
@@ -101,7 +135,7 @@ class SvgPreview extends StatelessWidget {
       provider.currentSvgString!,
       fit: BoxFit.contain,
       placeholderBuilder: (context) => const Center(
-        child: CircularProgressIndicator(),
+        child: CircularProgressIndicator(strokeWidth: 2),
       ),
     );
   }

@@ -84,17 +84,20 @@ class Workspace {
       id: json['id'],
       name: json['name'],
       originalSvgString: json['originalSvgString'],
-      elementAnimations: (json['elementAnimations'] as Map<String, dynamic>?)
-          ?.map((k, v) => MapEntry(int.parse(k), AnimationConfig.fromJson(v))) ?? {},
-      elementGroups: (json['elementGroups'] as Map<String, dynamic>?)
-          ?.map((k, v) => MapEntry(k, Group.fromJson(v))) ?? {},
+      elementAnimations: (json['elementAnimations'] as Map?)
+              ?.cast<String, dynamic>()
+              ?.map((k, v) => MapEntry(int.parse(k), AnimationConfig.fromJson(v))) ?? {},
+      elementGroups: (json['elementGroups'] as Map?)
+              ?.cast<String, dynamic>()
+              ?.map((k, v) => MapEntry(k, Group.fromJson(v))) ?? {},
       selectedElementIndex: json['selectedElementIndex'],
       selectedGroupElements: List<int>.from(json['selectedGroupElements'] ?? []),
       isMultiSelectMode: json['isMultiSelectMode'] ?? false,
       selectedGroupId: json['selectedGroupId'],
       nextGroupId: json['nextGroupId'] ?? 1,
-      trajectories: (json['trajectories'] as Map<String, dynamic>?)
-          ?.map((k, v) => MapEntry(k, Trajectory.fromJson(v))) ?? {},
+      trajectories: (json['trajectories'] as Map?)
+              ?.cast<String, dynamic>()
+              ?.map((k, v) => MapEntry(k, Trajectory.fromJson(v))) ?? {},
       nextTrajId: json['nextTrajId'] ?? 1,
       isTrajectoryMode: json['isTrajectoryMode'] ?? false,
       selectedTrajectoryId: json['selectedTrajectoryId'],
