@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/svg_provider.dart';
+import '../providers/settings_provider.dart';
 import '../core/constants.dart';
 import '../services/animation_engine.dart';
 import 'slider_control.dart';
@@ -10,8 +11,8 @@ import 'direction_pad.dart';
 class ControlsPanel extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return Consumer<SvgProvider>(
-      builder: (context, provider, _) {
+    return Consumer2<SvgProvider, SettingsProvider>(
+      builder: (context, provider, settings, _) {
         final selectedElements = provider.activeWorkspace.selectedGroupElements;
         if (selectedElements.isEmpty) {
           return const Center(
@@ -24,6 +25,7 @@ class ControlsPanel extends StatelessWidget {
 
         final config = provider.elementAnimations[selectedElements.first];
         final count = selectedElements.length;
+        final currentSpeed = config?.speed ?? settings.defaultSpeed;
 
         return SingleChildScrollView(
           padding: const EdgeInsets.all(12),
@@ -45,9 +47,9 @@ class ControlsPanel extends StatelessWidget {
                 ),
               SliderControl(
                 label: 'Velocidad',
-                value: config?.speed ?? 1.0,
-                min: 0.2,
-                max: 16.0,
+                value: currentSpeed,
+                min: 0.5,
+                max: 60.0,
                 suffix: 's',
                 onChanged: provider.updateAnimationSpeed,
               ),
