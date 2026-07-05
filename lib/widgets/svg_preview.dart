@@ -4,35 +4,14 @@ import 'package:flutter_svg/flutter_svg.dart';
 import '../providers/svg_provider.dart';
 import '../services/svg_parser.dart';
 import '../core/constants.dart';
+import 'animation_scope.dart';
 import 'empty_state.dart';
 import 'zoom_controls.dart';
 import 'background_layer.dart';
 import 'pieces_overlay.dart';
 import 'trajectory_overlay.dart';
 
-class SvgPreview extends StatefulWidget {
-  @override
-  State<SvgPreview> createState() => _SvgPreviewState();
-}
-
-class _SvgPreviewState extends State<SvgPreview> with SingleTickerProviderStateMixin {
-  late AnimationController _controller;
-
-  @override
-  void initState() {
-    super.initState();
-    _controller = AnimationController(
-      vsync: this,
-      duration: const Duration(seconds: 2),
-    )..repeat();
-  }
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
-  }
-
+class SvgPreview extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Consumer<SvgProvider>(
@@ -41,11 +20,7 @@ class _SvgPreviewState extends State<SvgPreview> with SingleTickerProviderStateM
           return EmptyState();
         }
 
-        if (!provider.animationPlaying) {
-          _controller.stop();
-        } else {
-          _controller.repeat();
-        }
+        _syncAnimationState(context, provider);
 
         final hasSelection = provider.activeWorkspace.selectedGroupElements.isNotEmpty;
 
@@ -98,6 +73,17 @@ class _SvgPreviewState extends State<SvgPreview> with SingleTickerProviderStateM
         );
       },
     );
+  }
+
+  void _syncAnimationState(BuildContext context, SvgProvider provider) {
+    final ctrl = AnimationScope.of(context);
+    if (ctrl == null) return;
+
+    if (!provider.animationPlaying) {
+      ctrl.stop();
+    } else if (!ctrl.isAnimating) {
+      ctrl.repeat();
+    }
   }
 
   Widget _buildAnimatedSvg(SvgProvider provider) {

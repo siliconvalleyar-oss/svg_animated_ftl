@@ -296,6 +296,17 @@ void main() {
         expect(widget, isA<Widget>());
       });
 
+      test('draw animation returns a valid widget', () {
+        final config = AnimationConfig(presetId: 'draw');
+        final widget = AnimationEngine.buildAnimation(
+          presetId: 'draw',
+          child: testChild,
+          animation: controller,
+          config: config,
+        );
+        expect(widget, isA<Widget>());
+      });
+
       test('opacity-anim animation returns a valid widget', () {
         final config = AnimationConfig(presetId: 'opacity-anim');
         final widget = AnimationEngine.buildAnimation(

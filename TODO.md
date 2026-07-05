@@ -124,14 +124,14 @@ Aplicación móvil Flutter para animar archivos SVG. 100% offline, sin crashes, 
 
 ---
 
-## FASE 13: Testing ⬜
+## FASE 13: Testing ✅
 
-- [ ] Crear tests unitarios para `SvgParser`
-- [ ] Crear tests unitarios para `AnimationEngine`
-- [ ] Crear tests unitarios para modelos (AnimationConfig, Workspace, etc.)
-- [ ] Crear tests de widget para `HomeScreen`
-- [ ] Crear tests de widget para `SvgPreview`
-- [ ] Ejecutar `flutter test` y verificar coverage
+- [x] Crear tests unitarios para `SvgParser`
+- [x] Crear tests unitarios para `AnimationEngine`
+- [x] Crear tests unitarios para modelos (AnimationConfig, Workspace, etc.)
+- [x] Crear tests unitarios para servicios (AnimationService, GroupService, TrajectoryService, HistoryService, SelectionService)
+- [x] Crear tests de widget para `HomeScreen`, `SvgPreview`, `BottomNav`, `EmptyState` (22 tests con MockSvgProvider)
+- [x] Ejecutar `flutter test` — 153 tests pasando
 
 ---
 
@@ -183,6 +183,12 @@ Aplicación móvil Flutter para animar archivos SVG. 100% offline, sin crashes, 
 - [ ] **Drawer** para workspaces en vez de solo el nombre en AppBar
 - [ ] **ExportScreen** — pantalla dedicada de exportación (referenciada en docs)
 - [ ] **Mejorar PiecesOverlay** con detección de hit por elemento SVG real
+- [ ] **Integrar animación 'draw' con grupos** — verificar que togglePreset funcione correctamente con elementos agrupados
+- [ ] **Verificar animación 'draw' visualmente** — ajustar velocidad, easing y clipping en dispositivo real
+- [ ] **Refactorizar SvgPreview** — separar AnimationController del widget de presentación para mejorar testabilidad
+- [ ] **Agregar tests de integración** para SvgPreview con AnimationController funcionando (flutter_driver/integration_test)
+- [ ] **Generar reporte de cobertura** de código para identificar áreas no cubiertas por tests
+- [ ] **Refactorizar historial (undo/redo)** — usar patron Memento más limpio en vez de snapshots completos
 
 ---
 

@@ -6,6 +6,7 @@ import 'package:hive_flutter/hive_flutter.dart';
 import 'app.dart';
 import 'providers/svg_provider.dart';
 import 'providers/theme_provider.dart';
+import 'providers/settings_provider.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -29,6 +30,7 @@ void main() async {
       providers: [
         ChangeNotifierProvider(create: (_) => ThemeProvider()),
         ChangeNotifierProvider(create: (_) => SvgProvider()..init()),
+        ChangeNotifierProvider(create: (_) => SettingsProvider()..init()),
       ],
       child: SvgAnimatorApp(),
     ),

@@ -80,6 +80,8 @@ class ExportService {
         return '@keyframes svgWaveSine_$index { 0%,100% { transform: translateX(0); } 25% { transform: translateX(40px); } 50% { transform: translateX(0); } 75% { transform: translateX(-40px); } }';
       case 'wave-square':
         return '@keyframes svgWaveSquare_$index { 0%,49.9% { transform: translateX(-40px); } 50%,100% { transform: translateX(40px); } }';
+      case 'draw':
+        return '@keyframes svgDraw_$index { 0% { clip-path: inset(0 100% 0 0); } 100% { clip-path: inset(0 0% 0 0); } }';
       case 'wave-triangle':
         return '@keyframes svgWaveTriangle_$index { 0% { transform: translateX(-40px); } 50% { transform: translateX(40px); } 100% { transform: translateX(-40px); } }';
       default:

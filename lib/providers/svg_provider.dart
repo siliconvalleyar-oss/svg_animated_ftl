@@ -1,18 +1,26 @@
-import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:hive/hive.dart';
 import 'package:uuid/uuid.dart';
 import '../models/animation_config.dart';
 import '../models/workspace.dart';
-import '../models/group.dart';
-import '../models/trajectory.dart';
+import '../services/animation_service.dart';
+import '../services/group_service.dart';
+import '../services/trajectory_service.dart';
+import '../services/history_service.dart';
+import '../services/selection_service.dart';
 
 class SvgProvider extends ChangeNotifier {
   static const _boxName = 'svg_animator';
   static const _workspacesKey = 'workspaces';
 
   final _uuid = const Uuid();
+  final _animationService = AnimationService();
+  final _groupService = GroupService();
+  final _trajectoryService = TrajectoryService();
+  final _historyService = HistoryService();
+  final _selectionService = SelectionService();
+
   List<Workspace> _workspaces = [];
   int _activeWorkspaceIndex = 0;
   bool _animationPlaying = true;
@@ -24,14 +32,15 @@ class SvgProvider extends ChangeNotifier {
   String? get currentSvgString => activeWorkspace.originalSvgString;
   Map<int, AnimationConfig> get elementAnimations => activeWorkspace.elementAnimations;
 
+  // ============================================================
+  // INITIALIZATION & PERSISTENCE
+  // ============================================================
+
   Future<void> init() async {
     try {
       await _loadWorkspaces();
       if (_workspaces.isEmpty) {
-        _workspaces.add(Workspace(
-          id: _generateId(),
-          name: 'Espacio 1',
-        ));
+        _workspaces.add(Workspace(id: _generateId(), name: 'Espacio 1'));
       }
       if (activeWorkspace.originalSvgString == null) {
         try {
@@ -49,13 +58,14 @@ class SvgProvider extends ChangeNotifier {
     }
   }
 
+  // ============================================================
+  // WORKSPACE MANAGEMENT
+  // ============================================================
+
   void addWorkspace() {
     try {
       _saveActiveWorkspace();
-      final ws = Workspace(
-        id: _generateId(),
-        name: 'Espacio ${_workspaces.length + 1}',
-      );
+      final ws = Workspace(id: _generateId(), name: 'Espacio ${_workspaces.length + 1}');
       _workspaces.add(ws);
       _activeWorkspaceIndex = _workspaces.length - 1;
       _saveWorkspaces();
@@ -102,16 +112,14 @@ class SvgProvider extends ChangeNotifier {
     try {
       if (createNewWorkspace) {
         _saveActiveWorkspace();
-        if (activeWorkspace.originalSvgString == null) {
-          // Reutilizar workspace vacío
-        } else {
+        if (activeWorkspace.originalSvgString != null) {
           final ws = Workspace(id: _generateId(), name: 'Espacio ${_workspaces.length + 1}');
           _workspaces.add(ws);
           _activeWorkspaceIndex = _workspaces.length - 1;
         }
       }
       activeWorkspace.originalSvgString = svgString;
-      _resetAnimationState();
+      _animationService.resetAnimationState(activeWorkspace);
       _saveActiveWorkspace();
       notifyListeners();
     } catch (e) {
@@ -119,302 +127,185 @@ class SvgProvider extends ChangeNotifier {
     }
   }
 
-  // === PIECE SELECTION (TOGGLE) ===
+  // ============================================================
+  // ELEMENT SELECTION
+  // ============================================================
+
   void toggleElementSelection(int index) {
-    try {
-      if (activeWorkspace.selectedGroupElements.contains(index)) {
-        activeWorkspace.selectedGroupElements.remove(index);
-      } else {
-        activeWorkspace.selectedGroupElements.add(index);
-      }
-      activeWorkspace.selectedElementIndex =
-          activeWorkspace.selectedGroupElements.isNotEmpty
-              ? activeWorkspace.selectedGroupElements.last
-              : null;
-      notifyListeners();
-    } catch (e) {
-      debugPrint('Error toggling selection: $e');
-    }
+    _selectionService.toggleElementSelection(activeWorkspace, index);
+    notifyListeners();
   }
 
   void selectElement(int index) {
-    activeWorkspace.selectedGroupElements.clear();
-    activeWorkspace.selectedGroupElements.add(index);
-    activeWorkspace.selectedElementIndex = index;
+    _selectionService.selectElement(activeWorkspace, index);
     notifyListeners();
   }
 
   void clearSelection() {
-    activeWorkspace.selectedGroupElements.clear();
-    activeWorkspace.selectedElementIndex = null;
-    activeWorkspace.selectedGroupId = null;
+    _selectionService.clearSelection(activeWorkspace);
     notifyListeners();
   }
 
-  // === MULTI-SELECT CONTROLS ===
-  void _applyToSelectedElements(void Function(int idx, AnimationConfig cfg) fn) {
-    try {
-      _pushHistory();
-      for (final idx in activeWorkspace.selectedGroupElements) {
-        final cfg = _getConfigForIndex(idx);
-        fn(idx, cfg);
-        activeWorkspace.elementAnimations[idx] = cfg;
-      }
-      notifyListeners();
-    } catch (e) {
-      debugPrint('Error applying to selected: $e');
-    }
-  }
+  // ============================================================
+  // ANIMATION CONTROLS
+  // ============================================================
 
   void togglePreset(String presetId) {
-    try {
-      _pushHistory();
-      for (final index in activeWorkspace.selectedGroupElements) {
-        final cfg = _getConfigForIndex(index);
-        if (cfg.presetId == presetId) {
-          if (cfg.extraPresets.isNotEmpty) {
-            cfg.presetId = cfg.extraPresets.removeAt(0);
-          } else {
-            cfg.presetId = null;
-          }
-        } else if (cfg.extraPresets.contains(presetId)) {
-          cfg.extraPresets.remove(presetId);
-        } else {
-          if (cfg.presetId != null) {
-            if (!cfg.extraPresets.contains(cfg.presetId!)) {
-              cfg.extraPresets.add(cfg.presetId!);
-            }
-          }
-          cfg.presetId = presetId;
-        }
-        activeWorkspace.elementAnimations[index] = cfg;
-        _syncGroupIfNeeded(index, cfg);
-      }
-      notifyListeners();
-    } catch (e) {
-      debugPrint('Error toggling preset: $e');
-    }
+    _historyService.pushHistory(activeWorkspace);
+    _animationService.togglePreset(activeWorkspace, presetId);
+    notifyListeners();
   }
 
   void updateAnimationSpeed(double speed) {
-    _applyToSelectedElements((idx, cfg) => cfg.speed = speed);
-  }
-
-  void updateAnimationDelay(double delay) {
-    _applyToSelectedElements((idx, cfg) => cfg.delay = delay);
-  }
-
-  void updateAnimationIteration(String iter) {
-    _applyToSelectedElements((idx, cfg) => cfg.iter = iter);
-  }
-
-  void updateAnimationDirection(String dir) {
-    _applyToSelectedElements((idx, cfg) => cfg.dir = dir);
-  }
-
-  void updateDirectionAngle(double angle) {
-    _applyToSelectedElements((idx, cfg) => cfg.directionAngle = angle);
-  }
-
-  void updateOpacity(double opacity) {
-    _applyToSelectedElements((idx, cfg) => cfg.opacity = opacity);
-  }
-
-  void updateInitialVelocity(double velocity) {
-    _applyToSelectedElements((idx, cfg) => cfg.initialVelocity = velocity);
-  }
-
-  void updateLaunchAngle(double angle) {
-    _applyToSelectedElements((idx, cfg) => cfg.launchAngle = angle);
-  }
-
-  void updateGravity(double gravity) {
-    _applyToSelectedElements((idx, cfg) => cfg.gravity = gravity);
-  }
-
-  void updateOvalRx(double rx) {
-    _applyToSelectedElements((idx, cfg) => cfg.ovalRx = rx);
-  }
-
-  void updateOvalRy(double ry) {
-    _applyToSelectedElements((idx, cfg) => cfg.ovalRy = ry);
-  }
-
-  void updateArcRx(double rx) {
-    _applyToSelectedElements((idx, cfg) => cfg.arcRx = rx);
-  }
-
-  void updateArcRy(double ry) {
-    _applyToSelectedElements((idx, cfg) => cfg.arcRy = ry);
-  }
-
-  // === GROUPS ===
-  void createGroup(List<int> indices, String name) {
-    try {
-      if (indices.length < 2) return;
-      _pushHistory();
-      final color = _getNextGroupColor(activeWorkspace.nextGroupId);
-      final groupId = 'g${activeWorkspace.nextGroupId++}';
-      final templateConfig = elementAnimations[indices.first] ?? AnimationConfig();
-      final group = Group(
-        name: name,
-        color: color,
-        elements: List.from(indices),
-        config: AnimationConfig.fromJson(templateConfig.toJson()),
-      );
-      activeWorkspace.elementGroups[groupId] = group;
-      for (final idx in indices) {
-        activeWorkspace.elementAnimations[idx] = AnimationConfig.fromJson(templateConfig.toJson());
-      }
-      activeWorkspace.selectedGroupElements.clear();
-      activeWorkspace.selectedGroupId = groupId;
-      _saveActiveWorkspace();
-      notifyListeners();
-    } catch (e) {
-      debugPrint('Error creating group: $e');
-    }
-  }
-
-  void deleteGroup(String groupId) {
-    try {
-      _pushHistory();
-      activeWorkspace.elementGroups.remove(groupId);
-      if (activeWorkspace.selectedGroupId == groupId) {
-        activeWorkspace.selectedGroupId = null;
-      }
-      _saveActiveWorkspace();
-      notifyListeners();
-    } catch (e) {
-      debugPrint('Error deleting group: $e');
-    }
-  }
-
-  void renameGroup(String groupId, String newName) {
-    try {
-      final group = activeWorkspace.elementGroups[groupId];
-      if (group != null) {
-        group.name = newName;
-        _saveWorkspaces();
-        notifyListeners();
-      }
-    } catch (e) {
-      debugPrint('Error renaming group: $e');
-    }
-  }
-
-  // === PIECES MODE ===
-  void togglePiecesMode() {
-    activeWorkspace.isPiecesMode = !activeWorkspace.isPiecesMode;
-    if (!activeWorkspace.isPiecesMode) {
-      activeWorkspace.piecesSelectedIndex = -1;
-      activeWorkspace.selectedGroupElements.clear();
-    }
+    _historyService.pushHistory(activeWorkspace);
+    _animationService.applyToSelected(activeWorkspace, (cfg) => cfg.speed = speed);
     notifyListeners();
   }
 
-  // === TRAJECTORIES ===
+  void updateAnimationDelay(double delay) {
+    _historyService.pushHistory(activeWorkspace);
+    _animationService.applyToSelected(activeWorkspace, (cfg) => cfg.delay = delay);
+    notifyListeners();
+  }
+
+  void updateAnimationIteration(String iter) {
+    _historyService.pushHistory(activeWorkspace);
+    _animationService.applyToSelected(activeWorkspace, (cfg) => cfg.iter = iter);
+    notifyListeners();
+  }
+
+  void updateAnimationDirection(String dir) {
+    _historyService.pushHistory(activeWorkspace);
+    _animationService.applyToSelected(activeWorkspace, (cfg) => cfg.dir = dir);
+    notifyListeners();
+  }
+
+  void updateDirectionAngle(double angle) {
+    _historyService.pushHistory(activeWorkspace);
+    _animationService.applyToSelected(activeWorkspace, (cfg) => cfg.directionAngle = angle);
+    notifyListeners();
+  }
+
+  void updateOpacity(double opacity) {
+    _historyService.pushHistory(activeWorkspace);
+    _animationService.applyToSelected(activeWorkspace, (cfg) => cfg.opacity = opacity);
+    notifyListeners();
+  }
+
+  void updateInitialVelocity(double velocity) {
+    _historyService.pushHistory(activeWorkspace);
+    _animationService.applyToSelected(activeWorkspace, (cfg) => cfg.initialVelocity = velocity);
+    notifyListeners();
+  }
+
+  void updateLaunchAngle(double angle) {
+    _historyService.pushHistory(activeWorkspace);
+    _animationService.applyToSelected(activeWorkspace, (cfg) => cfg.launchAngle = angle);
+    notifyListeners();
+  }
+
+  void updateGravity(double gravity) {
+    _historyService.pushHistory(activeWorkspace);
+    _animationService.applyToSelected(activeWorkspace, (cfg) => cfg.gravity = gravity);
+    notifyListeners();
+  }
+
+  void updateOvalRx(double rx) {
+    _historyService.pushHistory(activeWorkspace);
+    _animationService.applyToSelected(activeWorkspace, (cfg) => cfg.ovalRx = rx);
+    notifyListeners();
+  }
+
+  void updateOvalRy(double ry) {
+    _historyService.pushHistory(activeWorkspace);
+    _animationService.applyToSelected(activeWorkspace, (cfg) => cfg.ovalRy = ry);
+    notifyListeners();
+  }
+
+  void updateArcRx(double rx) {
+    _historyService.pushHistory(activeWorkspace);
+    _animationService.applyToSelected(activeWorkspace, (cfg) => cfg.arcRx = rx);
+    notifyListeners();
+  }
+
+  void updateArcRy(double ry) {
+    _historyService.pushHistory(activeWorkspace);
+    _animationService.applyToSelected(activeWorkspace, (cfg) => cfg.arcRy = ry);
+    notifyListeners();
+  }
+
+  // ============================================================
+  // GROUPS
+  // ============================================================
+
+  void createGroup(List<int> indices, String name) {
+    _historyService.pushHistory(activeWorkspace);
+    _groupService.createGroup(activeWorkspace, indices, name);
+    _saveActiveWorkspace();
+    notifyListeners();
+  }
+
+  void deleteGroup(String groupId) {
+    _historyService.pushHistory(activeWorkspace);
+    _groupService.deleteGroup(activeWorkspace, groupId);
+    _saveActiveWorkspace();
+    notifyListeners();
+  }
+
+  void renameGroup(String groupId, String newName) {
+    _groupService.renameGroup(activeWorkspace, groupId, newName);
+    _saveWorkspaces();
+    notifyListeners();
+  }
+
+  // ============================================================
+  // PIECES MODE
+  // ============================================================
+
+  void togglePiecesMode() {
+    _selectionService.togglePiecesMode(activeWorkspace);
+    notifyListeners();
+  }
+
+  // ============================================================
+  // TRAJECTORIES
+  // ============================================================
+
   String addTrajectory(String name) {
-    try {
-      final id = 'traj_${activeWorkspace.nextTrajId++}';
-      final trajectory = Trajectory(
-        name: name,
-        points: [
-          TrajectoryPoint(x: 30, y: 100),
-          TrajectoryPoint(x: 55, y: 60),
-          TrajectoryPoint(x: 100, y: 40),
-          TrajectoryPoint(x: 145, y: 60),
-          TrajectoryPoint(x: 170, y: 100),
-        ],
-      );
-      activeWorkspace.trajectories[id] = trajectory;
-      activeWorkspace.selectedTrajectoryId = id;
-      activeWorkspace.isTrajectoryMode = true;
-      _pushHistory();
-      notifyListeners();
-      return id;
-    } catch (e) {
-      debugPrint('Error adding trajectory: $e');
-      return '';
-    }
+    _historyService.pushHistory(activeWorkspace);
+    final id = _trajectoryService.addTrajectory(activeWorkspace, name);
+    notifyListeners();
+    return id;
   }
 
   void deleteTrajectory(String id) {
-    try {
-      _pushHistory();
-      activeWorkspace.trajectories.remove(id);
-      if (activeWorkspace.selectedTrajectoryId == id) {
-        activeWorkspace.selectedTrajectoryId = null;
-        activeWorkspace.isTrajectoryMode = false;
-      }
-      for (final entry in activeWorkspace.elementAnimations.entries) {
-        if (entry.value.trajectoryId == id) {
-          entry.value.trajectoryId = null;
-        }
-      }
-      notifyListeners();
-    } catch (e) {
-      debugPrint('Error deleting trajectory: $e');
-    }
+    _historyService.pushHistory(activeWorkspace);
+    _trajectoryService.deleteTrajectory(activeWorkspace, id);
+    notifyListeners();
   }
 
-  // === UNDO / REDO ===
-  void _pushHistory() {
-    try {
-      final ws = activeWorkspace;
-      if (ws.undoIndex < ws.undoStack.length - 1) {
-        ws.undoStack = ws.undoStack.sublist(0, ws.undoIndex + 1);
-      }
-      ws.undoStack.add({
-        'animations': ws.elementAnimations.map((k, v) => MapEntry(k, v.toJson())),
-        'groups': ws.elementGroups.map((k, v) => MapEntry(k, v.toJson())),
-      });
-      if (ws.undoStack.length > 50) {
-        ws.undoStack.removeAt(0);
-      }
-      ws.undoIndex = ws.undoStack.length - 1;
-    } catch (e) {
-      debugPrint('Error pushing history: $e');
-    }
-  }
+  // ============================================================
+  // UNDO / REDO
+  // ============================================================
+
+  bool get canUndo => _historyService.canUndo(activeWorkspace);
+  bool get canRedo => _historyService.canRedo(activeWorkspace);
 
   void undo() {
-    try {
-      final ws = activeWorkspace;
-      if (ws.undoIndex <= 0) return;
-      ws.undoIndex--;
-      _restoreHistory(ws.undoStack[ws.undoIndex]);
+    if (_historyService.undo(activeWorkspace)) {
       notifyListeners();
-    } catch (e) {
-      debugPrint('Error undoing: $e');
     }
   }
 
   void redo() {
-    try {
-      final ws = activeWorkspace;
-      if (ws.undoIndex >= ws.undoStack.length - 1) return;
-      ws.undoIndex++;
-      _restoreHistory(ws.undoStack[ws.undoIndex]);
+    if (_historyService.redo(activeWorkspace)) {
       notifyListeners();
-    } catch (e) {
-      debugPrint('Error redoing: $e');
     }
   }
 
-  void _restoreHistory(Map<String, dynamic> state) {
-    try {
-      final ws = activeWorkspace;
-      ws.elementAnimations = (state['animations'] as Map<String, dynamic>?)
-          ?.map((k, v) => MapEntry(int.parse(k), AnimationConfig.fromJson(v))) ?? {};
-      ws.elementGroups = (state['groups'] as Map<String, dynamic>?)
-          ?.map((k, v) => MapEntry(k, Group.fromJson(v))) ?? {};
-    } catch (e) {
-      debugPrint('Error restoring history: $e');
-    }
-  }
-
-  bool get canUndo => activeWorkspace.undoIndex > 0;
-  bool get canRedo => activeWorkspace.undoIndex < activeWorkspace.undoStack.length - 1;
+  // ============================================================
+  // PLAYBACK & ZOOM
+  // ============================================================
 
   void togglePlayPause() {
     _animationPlaying = !_animationPlaying;
@@ -426,67 +317,9 @@ class SvgProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  AnimationConfig _getConfigForIndex(int index) {
-    return activeWorkspace.elementAnimations[index] ?? AnimationConfig();
-  }
-
-  void _syncGroupValue(int index, String key, dynamic value) {
-    final groupId = activeWorkspace.elementGroups.keys.firstWhere(
-      (gid) => activeWorkspace.elementGroups[gid]!.elements.contains(index),
-      orElse: () => '',
-    );
-    if (groupId.isEmpty) return;
-    final group = activeWorkspace.elementGroups[groupId]!;
-    switch (key) {
-      case 'speed': group.config.speed = value; break;
-      case 'delay': group.config.delay = value; break;
-      case 'iter': group.config.iter = value; break;
-      case 'dir': group.config.dir = value; break;
-      case 'directionAngle': group.config.directionAngle = value; break;
-      case 'opacity': group.config.opacity = value; break;
-    }
-    for (final idx in group.elements) {
-      if (activeWorkspace.elementAnimations.containsKey(idx)) {
-        switch (key) {
-          case 'speed': activeWorkspace.elementAnimations[idx]!.speed = value; break;
-          case 'delay': activeWorkspace.elementAnimations[idx]!.delay = value; break;
-          case 'iter': activeWorkspace.elementAnimations[idx]!.iter = value; break;
-          case 'dir': activeWorkspace.elementAnimations[idx]!.dir = value; break;
-          case 'directionAngle': activeWorkspace.elementAnimations[idx]!.directionAngle = value; break;
-          case 'opacity': activeWorkspace.elementAnimations[idx]!.opacity = value; break;
-        }
-      }
-    }
-  }
-
-  void _syncGroupIfNeeded(int index, AnimationConfig config) {
-    final groupId = activeWorkspace.elementGroups.keys.firstWhere(
-      (gid) => activeWorkspace.elementGroups[gid]!.elements.contains(index),
-      orElse: () => '',
-    );
-    if (groupId.isEmpty) return;
-    final group = activeWorkspace.elementGroups[groupId]!;
-    group.config = AnimationConfig.fromJson(config.toJson());
-    for (final idx in group.elements) {
-      activeWorkspace.elementAnimations[idx] = AnimationConfig.fromJson(config.toJson());
-    }
-  }
-
-  void _resetAnimationState() {
-    activeWorkspace.elementAnimations = {};
-    activeWorkspace.elementGroups = {};
-    activeWorkspace.selectedElementIndex = null;
-    activeWorkspace.selectedGroupElements.clear();
-    activeWorkspace.selectedGroupId = null;
-    activeWorkspace.isMultiSelectMode = false;
-    activeWorkspace.nextGroupId = 1;
-    activeWorkspace.trajectories = {};
-    activeWorkspace.nextTrajId = 1;
-    activeWorkspace.isTrajectoryMode = false;
-    activeWorkspace.selectedTrajectoryId = null;
-    activeWorkspace.undoStack = [];
-    activeWorkspace.undoIndex = -1;
-  }
+  // ============================================================
+  // PERSISTENCE HELPERS
+  // ============================================================
 
   void _saveActiveWorkspace() {
     _saveWorkspaces();
@@ -517,10 +350,5 @@ class SvgProvider extends ChangeNotifier {
 
   String _generateId() {
     return '${DateTime.now().millisecondsSinceEpoch}_${_uuid.v4().substring(0, 8)}';
-  }
-
-  String _getNextGroupColor(int groupId) {
-    const colors = ['#6c5ce7', '#e74c3c', '#2ecc71', '#f39c12', '#1abc9c', '#9b59b6', '#3498db', '#e67e22'];
-    return colors[(groupId - 1) % colors.length];
   }
 }

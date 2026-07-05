@@ -55,6 +55,8 @@ class AnimationEngine {
           return _buildElasticBounce(child, animation);
         case 'spring':
           return _buildSpring(child, animation);
+        case 'draw':
+          return _buildDraw(child, animation);
         case 'opacity-anim':
           return _buildOpacityAnim(child, animation);
         default:
@@ -287,6 +289,23 @@ class AnimationEngine {
     return Transform.translate(
       offset: Offset(dx, 0),
       child: Transform.scale(scale: scale, child: child),
+    );
+  }
+
+  // Dibujar — revela progresivamente de izquierda a derecha
+  static Widget _buildDraw(Widget child, Animation<double> animation) {
+    return AnimatedBuilder(
+      animation: animation,
+      builder: (context, child) {
+        return ClipRect(
+          child: Align(
+            alignment: Alignment.centerLeft,
+            widthFactor: animation.value,
+            child: child,
+          ),
+        );
+      },
+      child: child,
     );
   }
 

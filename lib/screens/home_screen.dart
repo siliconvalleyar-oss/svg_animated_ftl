@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'dart:io';
-import 'package:path_provider/path_provider.dart';
 import '../providers/svg_provider.dart';
+import '../providers/settings_provider.dart';
 import '../core/constants.dart';
 import '../widgets/svg_preview.dart';
 import '../widgets/bottom_nav.dart';
@@ -69,6 +69,10 @@ class _HomeScreenState extends State<HomeScreen> {
           onPressed: context.watch<SvgProvider>().canRedo
               ? () => context.read<SvgProvider>().redo()
               : null,
+        ),
+        IconButton(
+          icon: const Icon(Icons.settings),
+          onPressed: _showSettings,
         ),
       ],
     );
@@ -172,20 +176,110 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Widget _buildExportPanel() {
-    return Padding(
-      padding: const EdgeInsets.all(8),
-      child: Column(
-        children: [
-          ElevatedButton.icon(
-            onPressed: _exportSvg,
-            icon: const Icon(Icons.save_alt, size: 20),
-            label: const Text('Exportar SVG Animado'),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.success,
-              foregroundColor: Colors.white,
-              padding: const EdgeInsets.symmetric(vertical: 12),
-              minimumSize: const Size(double.infinity, 48),
+    return Consumer<SettingsProvider>(
+      builder: (context, settings, _) {
+        return Padding(
+          padding: const EdgeInsets.all(8),
+          child: Column(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(8),
+                margin: const EdgeInsets.only(bottom: 8),
+                decoration: BoxDecoration(
+                  color: AppColors.surface2,
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(color: AppColors.border),
+                ),
+                child: Row(
+                  children: [
+                    const Icon(Icons.folder, size: 16, color: AppColors.textDim),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        settings.exportPath,
+                        style: const TextStyle(fontSize: 11, color: AppColors.textDim),
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton.icon(
+                  onPressed: _exportSvg,
+                  icon: const Icon(Icons.save_alt, size: 20),
+                  label: const Text('Exportar SVG Animado'),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.success,
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  void _showSettings() {
+    final settings = context.read<SettingsProvider>();
+    final controller = TextEditingController(text: settings.exportPath);
+
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: AppColors.surface2,
+        title: const Text('Configuración', style: TextStyle(color: AppColors.text)),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text('Ruta de exportación:', style: TextStyle(fontSize: 12, color: AppColors.textDim)),
+            const SizedBox(height: 8),
+            TextField(
+              controller: controller,
+              style: const TextStyle(color: AppColors.text, fontSize: 13),
+              decoration: InputDecoration(
+                hintText: '/sdcard/Pictures/svg_animated_ftl',
+                hintStyle: const TextStyle(color: AppColors.textDim),
+                border: const OutlineInputBorder(),
+                suffixIcon: IconButton(
+                  icon: const Icon(Icons.restore, size: 18),
+                  onPressed: () {
+                    controller.text = '/sdcard/Pictures/svg_animated_ftl';
+                  },
+                ),
+              ),
             ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancelar'),
+          ),
+          TextButton(
+            onPressed: () async {
+              final path = controller.text.trim();
+              if (path.isNotEmpty) {
+                // Create directory if it doesn't exist
+                final dir = Directory(path);
+                if (!await dir.exists()) {
+                  await dir.create(recursive: true);
+                }
+                await settings.setExportPath(path);
+                if (mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text('Ruta guardada: $path')),
+                  );
+                }
+              }
+              Navigator.pop(context);
+            },
+            child: const Text('Guardar', style: TextStyle(color: AppColors.accent)),
           ),
         ],
       ),
@@ -248,6 +342,8 @@ class _HomeScreenState extends State<HomeScreen> {
   Future<void> _exportSvg() async {
     try {
       final provider = context.read<SvgProvider>();
+      final settings = context.read<SettingsProvider>();
+
       if (provider.currentSvgString == null) {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
@@ -257,8 +353,13 @@ class _HomeScreenState extends State<HomeScreen> {
         return;
       }
 
-      final directory = await getApplicationDocumentsDirectory();
-      final file = File('${directory.path}/animated_svg_${DateTime.now().millisecondsSinceEpoch}.svg');
+      // Create directory if it doesn't exist
+      final dir = Directory(settings.exportPath);
+      if (!await dir.exists()) {
+        await dir.create(recursive: true);
+      }
+
+      final file = File('${settings.exportPath}/animated_svg_${DateTime.now().millisecondsSinceEpoch}.svg');
       await file.writeAsString(provider.currentSvgString!, flush: true);
 
       if (mounted) {
