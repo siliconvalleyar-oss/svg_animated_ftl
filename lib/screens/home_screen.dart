@@ -304,6 +304,7 @@ class _HomeScreenState extends State<HomeScreen> {
     final settings = context.read<SettingsProvider>();
     final controller = TextEditingController(text: settings.exportPath);
     double tempDimOpacity = settings.dimOpacity;
+    double tempSpeed = settings.defaultSpeed;
 
     showDialog(
       context: context,
@@ -335,6 +336,32 @@ class _HomeScreenState extends State<HomeScreen> {
                     ),
                   ),
                   const SizedBox(height: 16),
+                  const Text('Velocidad por defecto:', style: TextStyle(fontSize: 12, color: AppColors.textDim)),
+                  const SizedBox(height: 4),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Slider(
+                          value: tempSpeed,
+                          min: 0.5,
+                          max: 60.0,
+                          divisions: 120,
+                          activeColor: AppColors.accent,
+                          onChanged: (v) {
+                            setDialogState(() => tempSpeed = v);
+                          },
+                        ),
+                      ),
+                      SizedBox(
+                        width: 50,
+                        child: Text(
+                          '${tempSpeed.toStringAsFixed(1)}s',
+                          style: const TextStyle(fontSize: 11, color: AppColors.text),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 12),
                   const Text('Opacidad de piezas no seleccionadas:', style: TextStyle(fontSize: 12, color: AppColors.textDim)),
                   const SizedBox(height: 4),
                   Row(
@@ -379,6 +406,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     await settings.setExportPath(path);
                   }
                   await settings.setDimOpacity(tempDimOpacity);
+                  await settings.setDefaultSpeed(tempSpeed);
                   if (mounted) {
                     ScaffoldMessenger.of(context).showSnackBar(
                       const SnackBar(content: Text('Configuración guardada')),
