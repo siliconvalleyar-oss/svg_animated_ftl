@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import '../models/trajectory.dart';
 import '../providers/svg_provider.dart';
 import '../core/constants.dart';
 
@@ -20,7 +21,7 @@ class TrajectoryOverlay extends StatelessWidget {
 }
 
 class TrajectoryPainter extends CustomPainter {
-  final Map<String, dynamic> trajectories;
+  final Map<String, Trajectory> trajectories;
 
   TrajectoryPainter(this.trajectories);
 
@@ -45,7 +46,7 @@ class TrajectoryPainter extends CustomPainter {
 
       for (final point in trajectory.points) {
         canvas.drawCircle(
-          point,
+          Offset(point.x, point.y),
           4,
           Paint()..color = AppColors.accent,
         );

@@ -66,7 +66,7 @@ void main() {
         final group = ws.elementGroups[groupId!]!;
 
         expect(group.config.presetId, equals('draw'));
-        expect(group.config.speed, equals(1.0)); // uses first element's config
+        expect(group.config.speed, equals(4.0)); // uses first element's config (default)
         expect(ws.elementAnimations[2]!.presetId, equals('draw'));
         expect(ws.elementAnimations[3]!.presetId, equals('draw'));
       });

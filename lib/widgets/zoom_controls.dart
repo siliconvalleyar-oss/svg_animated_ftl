@@ -1,6 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
-import '../providers/svg_provider.dart';
 import '../core/constants.dart';
 
 class ZoomControls extends StatelessWidget {
@@ -20,8 +18,8 @@ class ZoomControls extends StatelessWidget {
             onTap: () {
               if (controller != null) {
                 final matrix = controller!.value.clone();
-                matrix.scale(1.3);
-                controller!.value = matrix;
+                final scaleMatrix = Matrix4.diagonal3Values(1.3, 1.3, 1.0);
+                controller!.value = scaleMatrix * matrix;
               }
             },
           ),
@@ -31,8 +29,8 @@ class ZoomControls extends StatelessWidget {
             onTap: () {
               if (controller != null) {
                 final matrix = controller!.value.clone();
-                matrix.scale(0.7);
-                controller!.value = matrix;
+                final scaleMatrix = Matrix4.diagonal3Values(0.7, 0.7, 1.0);
+                controller!.value = scaleMatrix * matrix;
               }
             },
           ),

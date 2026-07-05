@@ -36,7 +36,7 @@ class AppTheme {
         activeTrackColor: AppColors.accent,
         inactiveTrackColor: AppColors.border,
         thumbColor: AppColors.accent,
-        overlayColor: AppColors.accent.withOpacity(0.2),
+        overlayColor: AppColors.accent.withValues(alpha: 0.2),
       ),
       snackBarTheme: const SnackBarThemeData(
         backgroundColor: AppColors.surface2,

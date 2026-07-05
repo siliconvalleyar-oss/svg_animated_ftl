@@ -10,6 +10,7 @@ import 'zoom_controls.dart';
 import 'background_layer.dart';
 import 'pieces_overlay.dart';
 import 'trajectory_overlay.dart';
+import 'individual_elements_view.dart';
 
 class SvgPreview extends StatelessWidget {
   @override
@@ -24,21 +25,29 @@ class SvgPreview extends StatelessWidget {
 
         final hasSelection = provider.activeWorkspace.selectedGroupElements.isNotEmpty;
         final isPlaying = provider.animationPlaying;
+        final hasAnimations = provider.elementAnimations.values.any(
+          (c) => c.presetId != null,
+        );
 
         return Stack(
           children: [
             BackgroundLayer(),
 
-            // SVG with zoom support
+            // Main content area
             ClipRect(
               child: InteractiveViewer(
                 minScale: AppConstants.minZoom,
                 maxScale: AppConstants.maxZoom,
-                child: AnimatedOpacity(
-                  duration: const Duration(milliseconds: 200),
-                  opacity: hasSelection ? 0.3 : 1.0,
-                  child: _buildAnimatedSvg(provider),
-                ),
+                child: hasAnimations
+                    ? IndividualElementsView()
+                    : AnimatedOpacity(
+                        duration: const Duration(milliseconds: 200),
+                        opacity: hasSelection ? 0.3 : 1.0,
+                        child: SvgPicture.string(
+                          provider.currentSvgString!,
+                          fit: BoxFit.contain,
+                        ),
+                      ),
               ),
             ),
 
@@ -75,7 +84,7 @@ class SvgPreview extends StatelessWidget {
                 ),
               ),
 
-            // Play/Pause button - minimal gray circle
+            // Play/Pause button
             Positioned(
               bottom: 8,
               right: 8,
@@ -118,25 +127,5 @@ class SvgPreview extends StatelessWidget {
     } else if (!ctrl.isAnimating) {
       ctrl.repeat();
     }
-  }
-
-  Widget _buildAnimatedSvg(SvgProvider provider) {
-    final parseResult = SvgParser.parse(provider.currentSvgString!);
-    if (!parseResult.isSuccess) {
-      return Center(
-        child: Text(
-          parseResult.error ?? 'Error al parsear SVG',
-          style: const TextStyle(color: AppColors.danger),
-        ),
-      );
-    }
-
-    return SvgPicture.string(
-      provider.currentSvgString!,
-      fit: BoxFit.contain,
-      placeholderBuilder: (context) => const Center(
-        child: CircularProgressIndicator(strokeWidth: 2),
-      ),
-    );
   }
 }

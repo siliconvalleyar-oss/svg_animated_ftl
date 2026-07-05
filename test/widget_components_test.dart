@@ -3,6 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:provider/provider.dart';
 import 'package:svg_animated_ftl/providers/svg_provider.dart';
 import 'package:svg_animated_ftl/providers/theme_provider.dart';
+import 'package:svg_animated_ftl/providers/settings_provider.dart';
 import 'package:svg_animated_ftl/widgets/slider_control.dart';
 import 'package:svg_animated_ftl/widgets/toggle_group.dart';
 import 'package:svg_animated_ftl/widgets/direction_pad.dart';
@@ -18,6 +19,24 @@ import 'package:svg_animated_ftl/core/constants.dart';
 import 'package:svg_animated_ftl/models/group.dart';
 import 'package:svg_animated_ftl/models/workspace.dart';
 import 'package:svg_animated_ftl/models/animation_config.dart';
+
+/// A minimal mock SvgProvider for widget testing that doesn't use Hive.
+/// A minimal mock SettingsProvider for widget testing.
+class MockSettingsProvider extends ChangeNotifier implements SettingsProvider {
+  String _exportPath = '/tmp/test';
+
+  @override
+  String get exportPath => _exportPath;
+
+  @override
+  Future<void> setExportPath(String path) async {
+    _exportPath = path;
+    notifyListeners();
+  }
+
+  @override
+  Future<void> init() async {}
+}
 
 /// A minimal mock SvgProvider for widget testing that doesn't use Hive.
 class MockSvgProvider extends ChangeNotifier implements SvgProvider {
@@ -216,6 +235,7 @@ Widget createTestApp({required Widget home, required MockSvgProvider provider}) 
   return MultiProvider(
     providers: [
       ChangeNotifierProvider<ThemeProvider>(create: (_) => ThemeProvider()),
+      ChangeNotifierProvider<SettingsProvider>(create: (_) => MockSettingsProvider()),
       ChangeNotifierProvider<SvgProvider>.value(value: provider),
     ],
     child: MaterialApp(
@@ -1387,43 +1407,61 @@ void main() {
   });
 
   group('PiecesOverlay', () {
-    testWidgets('shows Modo Piezas Activo text', (tester) async {
+    testWidgets('shows Modo Piezas text when pieces mode active', (tester) async {
       final provider = MockSvgProvider();
+      provider.activeWorkspace.isPiecesMode = true;
       await tester.pumpWidget(createTestApp(
         home: Scaffold(body: PiecesOverlay()),
         provider: provider,
       ));
 
-      expect(find.text('Modo Piezas Activo'), findsOneWidget);
+      expect(find.text('Modo Piezas'), findsOneWidget);
+      expect(find.byIcon(Icons.touch_app), findsOneWidget);
     });
 
-    testWidgets('text uses accent color', (tester) async {
+    testWidgets('hides content when pieces mode off', (tester) async {
       final provider = MockSvgProvider();
+      provider.activeWorkspace.isPiecesMode = false;
       await tester.pumpWidget(createTestApp(
         home: Scaffold(body: PiecesOverlay()),
         provider: provider,
       ));
 
-      final textWidget = tester.widget<Text>(find.text('Modo Piezas Activo'));
-      expect(textWidget.style?.color, equals(AppColors.accent));
-      expect(textWidget.style?.fontSize, equals(16.0));
+      expect(find.text('Modo Piezas'), findsNothing);
     });
 
-    testWidgets('has transparent background container', (tester) async {
+    testWidgets('text uses white color and small font', (tester) async {
       final provider = MockSvgProvider();
+      provider.activeWorkspace.isPiecesMode = true;
+      await tester.pumpWidget(createTestApp(
+        home: Scaffold(body: PiecesOverlay()),
+        provider: provider,
+      ));
+
+      final textWidget = tester.widget<Text>(find.text('Modo Piezas'));
+      expect(textWidget.style?.color, equals(Colors.white));
+      expect(textWidget.style?.fontSize, equals(10.0));
+    });
+
+    testWidgets('mode indicator has accent background', (tester) async {
+      final provider = MockSvgProvider();
+      provider.activeWorkspace.isPiecesMode = true;
       await tester.pumpWidget(createTestApp(
         home: Scaffold(body: PiecesOverlay()),
         provider: provider,
       ));
 
       final container = tester.widget<Container>(
-        find.ancestor(of: find.text('Modo Piezas Activo'), matching: find.byType(Container)).first,
+        find.ancestor(of: find.text('Modo Piezas'), matching: find.byType(Container)).first,
       );
-      expect(container.color, equals(Colors.transparent));
+      final decoration = container.decoration as BoxDecoration;
+      expect(decoration.color, isNotNull);
+      expect(decoration.borderRadius, isNotNull);
     });
 
-    testWidgets('tapping calls clearSelection', (tester) async {
+    testWidgets('tapping on overlay calls clearSelection', (tester) async {
       final provider = MockSvgProvider();
+      provider.activeWorkspace.isPiecesMode = true;
       await tester.pumpWidget(createTestApp(
         home: Scaffold(body: PiecesOverlay()),
         provider: provider,
@@ -1431,24 +1469,27 @@ void main() {
 
       expect(provider.clearSelectionCalled, isFalse);
 
-      await tester.tap(find.text('Modo Piezas Activo'));
+      // Tap anywhere on the overlay — Positioned.fill GestureDetector covers it
+      await tester.tapAt(const Offset(50, 50));
+      await tester.pump();
 
       expect(provider.clearSelectionCalled, isTrue);
     });
 
     testWidgets('re-renders on provider change', (tester) async {
       final provider = MockSvgProvider();
+      provider.activeWorkspace.isPiecesMode = true;
       await tester.pumpWidget(createTestApp(
         home: Scaffold(body: PiecesOverlay()),
         provider: provider,
       ));
 
-      expect(find.text('Modo Piezas Activo'), findsOneWidget);
+      expect(find.text('Modo Piezas'), findsOneWidget);
 
       provider.notifyListeners();
       await tester.pump();
 
-      expect(find.text('Modo Piezas Activo'), findsOneWidget);
+      expect(find.text('Modo Piezas'), findsOneWidget);
     });
   });
 
