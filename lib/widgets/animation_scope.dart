@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import '../providers/svg_provider.dart';
 
 class AnimationScope extends StatefulWidget {
   final Widget child;
@@ -17,14 +19,12 @@ class AnimationScope extends StatefulWidget {
 
 class _AnimationScopeState extends State<AnimationScope> with SingleTickerProviderStateMixin {
   late AnimationController _controller;
+  bool _lastPlaying = true;
 
   @override
   void initState() {
     super.initState();
-    _controller = AnimationController(
-      vsync: this,
-      duration: widget.duration,
-    )..repeat();
+    _controller = AnimationController(vsync: this, duration: widget.duration)..repeat();
   }
 
   @override
@@ -44,6 +44,16 @@ class _AnimationScopeState extends State<AnimationScope> with SingleTickerProvid
 
   @override
   Widget build(BuildContext context) {
+    final provider = context.watch<SvgProvider>();
+    final isPlaying = provider.animationPlaying;
+    if (isPlaying != _lastPlaying) {
+      _lastPlaying = isPlaying;
+      if (isPlaying) {
+        _controller.repeat();
+      } else {
+        _controller.stop();
+      }
+    }
     return _AnimationScopeInherited(
       controller: _controller,
       child: widget.child,

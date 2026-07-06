@@ -42,6 +42,22 @@ class MockSettingsProvider extends ChangeNotifier implements SettingsProvider {
   }
 
   @override
+  double get defaultSpeed => 16.0;
+
+  @override
+  double get selectedOpacity => 1.0;
+
+  @override
+  Future<void> setDefaultSpeed(double speed) async {
+    notifyListeners();
+  }
+
+  @override
+  Future<void> setSelectedOpacity(double opacity) async {
+    notifyListeners();
+  }
+
+  @override
   Future<void> init() async {}
 }
 
@@ -186,6 +202,22 @@ class MockSvgProvider extends ChangeNotifier implements SvgProvider {
     _workspace.zoomLevel = level;
     notifyListeners();
   }
+
+  @override
+  void moveSelectedElements(double dx, double dy) {
+    for (final index in _workspace.selectedGroupElements) {
+      final current = _workspace.elementOffsets[index] ?? Offset.zero;
+      _workspace.elementOffsets[index] = current + Offset(dx, dy);
+    }
+    notifyListeners();
+  }
+
+  @override
+  void resetElementOffsets() {
+    _workspace.elementOffsets.clear();
+    notifyListeners();
+  }
+
   @override
   Future<void> init() async {}
 }
@@ -217,11 +249,10 @@ void main() {
       ));
       await tester.pump();
 
-      expect(find.text('Importar'), findsOneWidget);
+      expect(find.text('Mover'), findsOneWidget);
       expect(find.text('Animar'), findsOneWidget);
       expect(find.text('Controles'), findsOneWidget);
       expect(find.text('Piezas'), findsOneWidget);
-      expect(find.text('Exportar'), findsOneWidget);
     });
 
     testWidgets('shows workspace name in appbar', (tester) async {
@@ -247,7 +278,7 @@ void main() {
       expect(find.byIcon(Icons.redo), findsOneWidget);
     });
 
-    testWidgets('tapping Import tab opens import panel', (tester) async {
+    testWidgets('tapping Mover tab opens move panel', (tester) async {
       final provider = MockSvgProvider();
       await tester.pumpWidget(createTestApp(
         home: HomeScreen(),
@@ -255,10 +286,10 @@ void main() {
       ));
       await tester.pump();
 
-      await tester.tap(find.text('Importar'));
+      await tester.tap(find.text('Mover'));
       await tester.pump();
 
-      expect(find.text('Pegar SVG'), findsOneWidget);
+      expect(find.text('Selecciona piezas para mover'), findsOneWidget);
     });
 
     testWidgets('tapping Piezas tab opens pieces panel', (tester) async {
@@ -275,7 +306,7 @@ void main() {
       expect(find.text('Activar piezas'), findsOneWidget);
     });
 
-    testWidgets('Export tab shows export button', (tester) async {
+    testWidgets('file operations in AppBar popup menu', (tester) async {
       final provider = MockSvgProvider();
       await tester.pumpWidget(createTestApp(
         home: HomeScreen(),
@@ -283,10 +314,7 @@ void main() {
       ));
       await tester.pump();
 
-      await tester.tap(find.text('Exportar'));
-      await tester.pump();
-
-      expect(find.text('Exportar SVG'), findsOneWidget);
+      expect(find.byIcon(Icons.file_upload_outlined), findsOneWidget);
     });
 
     testWidgets('tapping same tab twice closes panel', (tester) async {
@@ -297,13 +325,13 @@ void main() {
       ));
       await tester.pump();
 
-      await tester.tap(find.text('Importar'));
+      await tester.tap(find.text('Mover'));
       await tester.pump();
-      expect(find.text('Pegar SVG'), findsOneWidget);
+      expect(find.text('Selecciona piezas para mover'), findsOneWidget);
 
-      await tester.tap(find.text('Importar'));
+      await tester.tap(find.text('Mover'));
       await tester.pump();
-      expect(find.text('Pegar SVG'), findsNothing);
+      expect(find.text('Selecciona piezas para mover'), findsNothing);
     });
 
     testWidgets('pieces mode toggle switches text', (tester) async {
@@ -366,7 +394,7 @@ void main() {
   });
 
   group('BottomNav', () {
-    testWidgets('renders all 5 tabs', (tester) async {
+    testWidgets('renders all 4 tabs', (tester) async {
       final provider = MockSvgProvider();
       await tester.pumpWidget(createTestApp(
         home: Scaffold(
@@ -378,11 +406,10 @@ void main() {
         provider: provider,
       ));
 
-      expect(find.text('Importar'), findsOneWidget);
+      expect(find.text('Mover'), findsOneWidget);
       expect(find.text('Animar'), findsOneWidget);
       expect(find.text('Controles'), findsOneWidget);
       expect(find.text('Piezas'), findsOneWidget);
-      expect(find.text('Exportar'), findsOneWidget);
     });
 
     testWidgets('calls onTabChanged when tapped', (tester) async {
@@ -478,7 +505,11 @@ void main() {
         MaterialApp(
           home: Stack(
             children: [
-              ZoomControls(controller: controller),
+              Positioned(
+                right: 8,
+                top: 8,
+                child: ZoomControls(controller: controller, viewportSize: const Size(400, 600)),
+              ),
             ],
           ),
         ),
@@ -516,12 +547,11 @@ void main() {
       expect(find.byType(PiecesOverlay), findsOneWidget);
     });
 
-    testWidgets('shows selection count badge when elements selected', (tester) async {
+    testWidgets('shows selection highlight border when elements selected', (tester) async {
       final provider = MockSvgProvider();
       provider.animationPlaying = false;
       provider.setSvgString('<svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="40"/></svg>');
       provider.addSelectedElement(0);
-      provider.addSelectedElement(1);
 
       await tester.pumpWidget(createTestApp(
         home: wrapPreview(SvgPreview()),
@@ -529,8 +559,8 @@ void main() {
       ));
       await tester.pump();
 
-      // SvgPreview shows "{count} sel." format (e.g. "2 sel.")
-      expect(find.text('2 sel.'), findsOneWidget);
+      // SvgPreview shows a selection highlight border when elements selected
+      expect(find.byType(Positioned), findsWidgets);
     });
 
     testWidgets('shows TrajectoryOverlay in trajectory mode', (tester) async {

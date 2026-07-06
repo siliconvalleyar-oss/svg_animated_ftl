@@ -1,3 +1,4 @@
+import 'dart:ui' show Offset;
 import 'animation_config.dart';
 import 'group.dart';
 import 'trajectory.dart';
@@ -9,6 +10,7 @@ class Workspace {
   String? originalSvgString;
   Map<int, AnimationConfig> elementAnimations;
   Map<String, Group> elementGroups;
+  Map<int, Offset> elementOffsets;
   int? selectedElementIndex;
   List<int> selectedGroupElements;
   bool isMultiSelectMode;
@@ -37,6 +39,7 @@ class Workspace {
     this.isMultiSelectMode = false,
     this.selectedGroupId,
     this.nextGroupId = 1,
+    Map<int, Offset>? elementOffsets,
     Map<String, Trajectory>? trajectories,
     this.nextTrajId = 1,
     this.isTrajectoryMode = false,
@@ -50,6 +53,7 @@ class Workspace {
     this.undoIndex = -1,
   })  : elementAnimations = elementAnimations ?? {},
         elementGroups = elementGroups ?? {},
+        elementOffsets = elementOffsets ?? {},
         selectedGroupElements = selectedGroupElements ?? [],
         trajectories = trajectories ?? {},
         backgroundImages = backgroundImages ?? [],
@@ -61,6 +65,7 @@ class Workspace {
     'originalSvgString': originalSvgString,
     'elementAnimations': elementAnimations.map((k, v) => MapEntry(k.toString(), v.toJson())),
     'elementGroups': elementGroups.map((k, v) => MapEntry(k, v.toJson())),
+    'elementOffsets': elementOffsets.map((k, v) => MapEntry(k.toString(), {'dx': v.dx, 'dy': v.dy})),
     'selectedElementIndex': selectedElementIndex,
     'selectedGroupElements': selectedGroupElements,
     'isMultiSelectMode': isMultiSelectMode,
@@ -95,6 +100,9 @@ class Workspace {
       isMultiSelectMode: json['isMultiSelectMode'] ?? false,
       selectedGroupId: json['selectedGroupId'],
       nextGroupId: json['nextGroupId'] ?? 1,
+      elementOffsets: (json['elementOffsets'] as Map?)
+              ?.cast<String, dynamic>()
+              .map((k, v) => MapEntry(int.parse(k), Offset((v['dx'] as num).toDouble(), (v['dy'] as num).toDouble()))) ?? {},
       trajectories: (json['trajectories'] as Map?)
               ?.cast<String, dynamic>()
               .map((k, v) => MapEntry(k, Trajectory.fromJson(v))) ?? {},

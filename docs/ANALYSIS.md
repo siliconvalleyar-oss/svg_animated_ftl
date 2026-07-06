@@ -11,13 +11,14 @@
 | Atributo | Valor |
 |----------|-------|
 | **Nombre** | `svg_animated_ftl` |
-| **Versión actual** | `1.0.5` (VERSION) / `1.0.0+1` (pubspec) |
+| **Versión actual** | `1.2.0` (VERSION) |
 | **Plataformas** | Android 5.0+, iOS 12.0+ |
 | **Stack** | Flutter 3.0+ / Dart 3.0+ |
-| **Líneas de código** | ~3,434 en 37 archivos Dart |
-| **Archivo más grande** | `lib/providers/svg_provider.dart` (526 líneas) |
+| **Líneas de código** | ~5,500 en 50 archivos Dart |
+| **Archivo más grande** | `lib/screens/home_screen.dart` (596 líneas) |
 | **Dependencias principales** | 7 (flutter_svg, provider, path_provider, permission_handler, uuid, hive, xml) |
 | **Animaciones** | 24 presets |
+| **Tests** | ~153 tests en 11 archivos |
 
 ---
 
@@ -29,14 +30,14 @@
 
 ```
 lib/
-├── main.dart                    → Entry point, Hive init, Provider setup
-├── app.dart                     → MaterialApp + tema
+├── main.dart                    → Entry point, Hive init, Provider setup (3 providers)
+├── app.dart                     → MaterialApp + tema oscuro
 ├── core/                         → Constantes, tema, extensiones
-├── models/                       → Datos (Workspace, AnimationConfig, etc.)
-├── providers/                    → Estado global (SvgProvider, ThemeProvider)
-├── services/                     → Lógica de negocio (parser, animación, export)
-├── screens/                      → Pantallas (HomeScreen)
-└── widgets/                      → Componentes UI reutilizables
+├── models/                       → Datos (Workspace, AnimationConfig, Group, etc.)
+├── providers/                    → Estado global (SvgProvider, SettingsProvider, ThemeProvider)
+├── services/                     → Lógica de negocio (10 servicios)
+├── screens/                      → Pantallas (SplashScreen, HomeScreen)
+└── widgets/                      → Componentes UI (18 widgets)
 ```
 
 ### 2.2 Flujo de datos
@@ -132,7 +133,7 @@ assets/car_animated_04.svg
 
 ## 5. PROVIDERS (ESTADO GLOBAL)
 
-### 5.1 SvgProvider (526 líneas)
+### 5.1 SvgProvider (375 líneas)
 
 El cerebro de la app. Gestiona:
 
@@ -146,7 +147,14 @@ El cerebro de la app. Gestiona:
 - **Undo/Redo**: historial de hasta 50 estados
 - **Persistencia**: Hive (load/save workspaces)
 
-### 5.2 ThemeProvider (tema oscuro por defecto)
+### 5.2 SettingsProvider (persistencia de ajustes)
+
+- Export path, dim opacity, selected opacity, default speed
+- Persisted to Hive box `svg_settings`
+
+### 5.3 ThemeProvider (tema oscuro por defecto)
+
+- Toggle dark/light (registrado pero no conectado a MaterialApp)
 
 ---
 
@@ -158,14 +166,41 @@ El cerebro de la app. Gestiona:
 - Extrae elementos animables: circle, rect, ellipse, path, line, polyline, polygon, g, text
 - Extrae viewBox (width/height)
 
-### 6.2 AnimationEngine (327 líneas)
+### 6.2 AnimationEngine (460 líneas)
 
-- **24 animaciones**: rotate, wheel, pulse, bounce, gravity, slide, oval, fade, shake, float, levitate, projectile, radiate, spin, glow, wave-sine, wave-square, wave-triangle, pendulum, freefall, elastic-bounce, spring, opacity-anim
+- **24 animaciones**: rotate, wheel, pulse, bounce, gravity, slide, oval, fade, draw, shake, float, levitate, projectile, radiate, spin, glow, wave-sine, wave-square, wave-triangle, pendulum, freefall, elastic-bounce, spring, opacity-anim
 - Cada animación usa `AnimatedBuilder` + `Transform`
 - 11 animaciones direccionables (soporte ángulo)
 - Física real: projectile usa fórmulas de tiro oblicuo
 
-### 6.3 ExportService
+### 6.3 AnimationService
+
+- Gestión de configuraciones de animación por elemento
+- Toggle presets con cola `extraPresets`
+- Sincronización de grupo
+
+### 6.4 SelectionService
+
+- Toggle selección individual/multi
+- Clear selección
+- Toggle modo piezas
+
+### 6.5 GroupService
+
+- CRUD de grupos (create, delete, rename)
+- Colores ciclicos (8 colores)
+
+### 6.6 HistoryService
+
+- Undo/Redo via snapshots (max 50 estados)
+- Serializa animations + groups
+
+### 6.7 TrajectoryService
+
+- CRUD de trayectorias
+- Puntos por defecto en arco
+
+### 6.8 ExportService (288 líneas)
 
 - Genera SVG con `<style>` + `@keyframes` CSS embebidos
 - Usa `XmlDocument` para manipular el SVG
@@ -182,37 +217,46 @@ El cerebro de la app. Gestiona:
 
 ---
 
-## 7. WIDGETS (17 widgets)
+## 7. WIDGETS (18 widgets)
 
 | Widget | Propósito |
 |--------|-----------|
-| `SvgPreview` | Área de preview con InteractiveViewer + AnimationController |
-| `BottomNav` | Barra inferior con 5 tabs |
+| `SvgPreview` | Área de preview con InteractiveViewer + AnimationScope |
+| `IndividualElementsView` | Renderiza cada elemento SVG como widget animado independiente |
+| `AnimationScope` | InheritedWidget con AnimationController compartido |
+| `BottomNav` | Barra inferior con 4 tabs (Mover, Animar, Controles, Piezas) |
 | `PanelSlider` | Panel deslizante animado |
-| `AnimationGrid` | Grid 3 columnas de 24 presets |
+| `AnimationGrid` | Grid 4 columnas de 24 presets |
 | `ControlsPanel` | Sliders + toggles + direction pad |
 | `ElementsList` | Lista de elementos con selección y grupos |
-| `ShapesGrid` | Grid 3 columnas de 12 formas predefinidas |
+| `ShapesGrid` | Grid de 12 formas predefinidas |
 | `PiecesOverlay` | Overlay interactivo para modo piezas |
 | `TrajectoryEditor` | Editor de trayectorias |
+| `TrajectoryOverlay` | CustomPaint de trayectorias |
 | `EmptyState` | Estado vacío del preview |
 | `SliderControl` | Slider reutilizable |
 | `ToggleGroup` | Toggle buttons reutilizables |
-| `DirectionPad` | Pad 3×3 de direcciones cardinales |
+| `DirectionPad` | Pad 8 direcciones cardinales |
 | `BackgroundLayer` | Capa de imágenes de fondo |
 | `ZoomControls` | Botones de zoom flotantes |
-| `TrajectoryOverlay` | CustomPaint de trayectorias |
 
 ---
 
 ## 8. PANTALLAS
 
-### HomeScreen (278 líneas)
+### SplashScreen (92 líneas)
 
-- AppBar con workspace name + undo/redo
-- Body: SvgPreview + PanelSlider
-- BottomNav: Importar, Animar, Controles, Piezas, Exportar
-- Paneles: Import (paste + shapes), Animation (grid + elements), Controls (sliders), Pieces (mode + elements), Export
+- Splash de 3 segundos con fade-in
+- Logo SVG animado + titulo
+- Navegacion automatica a HomeScreen
+
+### HomeScreen (596 líneas)
+
+- AppBar con workspace name + undo/redo + popup menu (import/export) + settings
+- Body: SvgPreview + PanelSlider condicional
+- BottomNav: 4 tabs (Mover, Animar, Controles, Piezas)
+- Paneles: Move (direction pad), Animation (grid + elements), Controls (sliders + toggles), Pieces (mode + elements)
+- Dialogo de settings con export path, workspace name, speed, opacidades
 
 ---
 
@@ -439,35 +483,37 @@ Versionado del proyecto:
 
 ### 13.1 Deudas técnicas detectadas
 
-1. **SvgProvider (526 líneas)**: demasiado grande. Recomendación: dividir en providers especializados (WorkspaceProvider, AnimationProvider, PiecesProvider).
+1. **SvgProvider (375 líneas)**: todavia grande. Recomendación: dividir en providers especializados.
 2. **AnimationConfig (19 campos)**: muchos campos opcionales. Recomendación: usar sub-objetos (OvalConfig, ProjectileConfig, ArcConfig).
-3. **TrajectoryPainter** en `trajectory_overlay.dart`: usa `Map<String, dynamic>` en lugar del tipo `Trajectory`.
-4. **`draw` animation**: declarada en constants pero no implementada en AnimationEngine.
-5. **Hive type adapters**: no se han generado (no hay archivos `.g.dart`).
-6. **Tests**: no hay tests unitarios ni de widget implementados.
-7. **Botonera de 24 animaciones en grid 3×3**: 8 filas pueden ser muchas en mobile.
+3. **SvgParser solo parsea hijos directos**: no detecta elementos dentro de `<g>`.
+4. **moveSelectedElements no persiste**: falta `_saveActiveWorkspace()`.
+5. **Undo/Redo incompleto**: no restaura `elementOffsets`.
+6. **gravity export sin soporte direccional**: keyframes siempre verticales.
+7. **freefall export distancia x2**: 196px vs 98px calculado.
+8. **ThemeProvider no conectado**: registrado pero MaterialApp lo ignora.
+9. **FileService y PermissionService sin uso**: codigo muerto.
+10. **PiecesOverlay drag roto**: actualiza estado local, nunca llama al provider.
 
 ### 13.2 Puntos fuertes
 
-1. ✅ Arquitectura limpia con Provider/ChangeNotifier
-2. ✅ Manejo de errores consistente en toda la app
-3. ✅ Buen uso de try-catch en operaciones riesgosas
-4. ✅ Separación clara de responsabilidades (models/providers/services/widgets)
-5. ✅ Undo/Redo funcional
-6. ✅ Multi-selección con grupos
-7. ✅ 24 animaciones variadas con soporte de física
-8. ✅ Exportación con CSS keyframes
-9. ✅ Persistencia con Hive
+1. Arquitectura limpia con Provider + Service Layer
+2. Manejo de errores consistente en toda la app (try-catch + debugPrint)
+3. Separación clara de responsabilidades (models/providers/services/widgets)
+4. 24 animaciones variadas con soporte de física real
+5. Exportación SVG con CSS @keyframes embebidos
+6. Persistencia con Hive (workspaces + settings)
+7. Splash screen con animacion
+8. Test suite con ~153 tests
 
 ### 13.3 Recomendaciones
 
-1. **Extraer SvgProvider** en múltiples providers
-2. **Agregar tests** (unitarios para parser y engine, widget para UI)
-3. **Generar adaptadores Hive** con `build_runner`
-4. **Agregar loading states** en operaciones asíncronas largas
-5. **Mejorar PiecesOverlay** con detección de hit por elemento SVG real
-6. **Internacionalizar** textos (hardcodeados en español)
-7. **Agregar drawer** para workspaces en vez de solo el nombre en AppBar
+1. **Corregir bugs criticos** (ver docs/BUGS.md): drag piezas, parser anidados, persistencia offsets
+2. **Extraer SvgProvider** en multiples providers mas pequenos
+3. **Conectar ThemeProvider** a MaterialApp o eliminarlo
+4. **Integrar PermissionService** en flujo de export
+5. **Resolver paths multi-plataforma** (Windows separator, iOS paths)
+6. **Eliminar codigo muerto** (FileService, PermissionService sin uso)
+7. **Internacionalizar** textos (hardcodeados en espanol)
 
 ---
 
@@ -475,19 +521,19 @@ Versionado del proyecto:
 
 | Métrica | Valor |
 |---------|-------|
-| Archivos Dart | 37 |
-| Líneas de código | ~3,434 |
-| Archivo más grande | `svg_provider.dart` (526 líneas) |
-| Archivo más pequeño | `svg_element.dart` (12 líneas) |
-| Promedio por archivo | ~93 líneas |
-| Widgets | 17 |
-| Servicios | 5 |
+| Archivos Dart (lib/) | 37 |
+| Archivos Dart (test/) | 11 |
+| Líneas de código | ~5,500 |
+| Archivo más grande | `home_screen.dart` (596 líneas) |
+| Archivo más pequeño | `svg_element.dart` (13 líneas) |
+| Widgets | 18 |
+| Servicios | 10 |
 | Modelos | 6 |
-| Providers | 2 |
-| Screens | 1 |
+| Providers | 3 |
+| Screens | 2 |
 | Animaciones | 24 |
 | Formas predefinidas | 12 |
-| Tags publicados | 6 (v1.0.0 → v1.0.5) |
+| Tests | ~153 |
 | Dependencias producción | 7 |
 | Dependencias desarrollo | 4 |
 

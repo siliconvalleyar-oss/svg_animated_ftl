@@ -10,7 +10,6 @@ import '../widgets/panel_slider.dart';
 import '../widgets/animation_grid.dart';
 import '../widgets/controls_panel.dart';
 import '../widgets/elements_list.dart';
-import '../widgets/shapes_grid.dart';
 import '../services/export_service.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -80,12 +79,16 @@ class _HomeScreenState extends State<HomeScreen> {
           onSelected: (value) {
             if (value == 'import') {
               _importSvgFromString();
+            } else if (value == 'import_folder') {
+              final settings = context.read<SettingsProvider>();
+              _importFromFolder(settings.exportPath);
             } else if (value == 'export') {
               _exportSvg();
             }
           },
           itemBuilder: (context) => [
-            const PopupMenuItem(value: 'import', child: ListTile(leading: Icon(Icons.upload_file), title: Text('Importar SVG'))),
+            const PopupMenuItem(value: 'import_folder', child: ListTile(leading: Icon(Icons.folder_open), title: Text('Cargar desde carpeta'))),
+            const PopupMenuItem(value: 'import', child: ListTile(leading: Icon(Icons.upload_file), title: Text('Pegar código SVG'))),
             const PopupMenuItem(value: 'export', child: ListTile(leading: Icon(Icons.save_alt), title: Text('Exportar SVG'))),
           ],
         ),
@@ -100,7 +103,7 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget _buildPanel() {
     switch (_selectedPanel) {
       case 0:
-        return PanelSlider(child: _buildImportPanel());
+        return PanelSlider(child: _buildMovePanel());
       case 1:
         return PanelSlider(
           child: Column(
@@ -114,78 +117,80 @@ class _HomeScreenState extends State<HomeScreen> {
         return PanelSlider(child: ControlsPanel());
       case 3:
         return PanelSlider(child: _buildPiecesPanel());
-      case 4:
-        return PanelSlider(child: _buildExportPanel());
       default:
         return const SizedBox.shrink();
     }
   }
 
-  Widget _buildImportPanel() {
-    return Consumer<SettingsProvider>(
-      builder: (context, settings, _) {
+  Widget _buildMovePanel() {
+    return Consumer<SvgProvider>(
+      builder: (context, provider, _) {
+        final hasSelection = provider.activeWorkspace.selectedGroupElements.isNotEmpty;
+        final step = 5.0;
         return Column(
           children: [
             Padding(
               padding: const EdgeInsets.all(8),
-              child: Row(
+              child: Text(
+                hasSelection
+                    ? 'Mover piezas seleccionadas (${provider.activeWorkspace.selectedGroupElements.length})'
+                    : 'Selecciona piezas para mover',
+                style: const TextStyle(fontSize: 13, color: AppColors.text),
+              ),
+            ),
+            if (hasSelection) ...[
+              const SizedBox(height: 4),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Expanded(
-                    child: ElevatedButton.icon(
-                      onPressed: _importSvgFromString,
-                      icon: const Icon(Icons.code, size: 18),
-                      label: const Text('Pegar SVG'),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: AppColors.accent,
-                        foregroundColor: Colors.white,
-                        padding: const EdgeInsets.symmetric(vertical: 10),
-                      ),
-                    ),
+                  // Left column
+                  Column(
+                    children: [
+                      const SizedBox(height: 36),
+                      _dirButton(Icons.arrow_back, () => provider.moveSelectedElements(-step, 0)),
+                    ],
                   ),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: ElevatedButton.icon(
-                      onPressed: () => _importFromFolder(settings.exportPath),
-                      icon: const Icon(Icons.folder_open, size: 18),
-                      label: const Text('Cargar SVG'),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: AppColors.surface2,
-                        foregroundColor: AppColors.text,
-                        padding: const EdgeInsets.symmetric(vertical: 10),
-                      ),
-                    ),
+                  // Center column: up, reset, down
+                  Column(
+                    children: [
+                      _dirButton(Icons.arrow_upward, () => provider.moveSelectedElements(0, -step)),
+                      const SizedBox(height: 4),
+                      _dirButton(Icons.center_focus_strong, provider.resetElementOffsets,
+                          color: AppColors.danger),
+                      const SizedBox(height: 4),
+                      _dirButton(Icons.arrow_downward, () => provider.moveSelectedElements(0, step)),
+                    ],
+                  ),
+                  // Right column
+                  Column(
+                    children: [
+                      const SizedBox(height: 36),
+                      _dirButton(Icons.arrow_forward, () => provider.moveSelectedElements(step, 0)),
+                    ],
                   ),
                 ],
               ),
-            ),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 8),
-              child: Container(
-                padding: const EdgeInsets.all(6),
-                decoration: BoxDecoration(
-                  color: AppColors.surface2.withValues(alpha: 0.5),
-                  borderRadius: BorderRadius.circular(6),
-                ),
-                child: Row(
-                  children: [
-                    const Icon(Icons.folder, size: 12, color: AppColors.textDim),
-                    const SizedBox(width: 4),
-                    Expanded(
-                      child: Text(
-                        settings.exportPath,
-                        style: const TextStyle(fontSize: 9, color: AppColors.textDim),
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-            const SizedBox(height: 8),
-            Expanded(child: ShapesGrid()),
+            ],
           ],
         );
       },
+    );
+  }
+
+  Widget _dirButton(IconData icon, VoidCallback onTap, {Color? color}) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        width: 44,
+        height: 44,
+        margin: const EdgeInsets.all(2),
+        decoration: BoxDecoration(
+          color: AppColors.surface2,
+          borderRadius: BorderRadius.circular(8),
+          border: Border.all(color: AppColors.border),
+        ),
+        child: Icon(icon, size: 22, color: color ?? AppColors.textDim),
+      ),
     );
   }
 
@@ -217,91 +222,6 @@ class _HomeScreenState extends State<HomeScreen> {
         ),
         Expanded(child: ElementsList()),
       ],
-    );
-  }
-
-  Widget _buildExportPanel() {
-    return Consumer<SettingsProvider>(
-      builder: (context, settings, _) {
-        return Padding(
-          padding: const EdgeInsets.all(8),
-          child: Column(
-            children: [
-              Container(
-                padding: const EdgeInsets.all(6),
-                margin: const EdgeInsets.only(bottom: 8),
-                decoration: BoxDecoration(
-                  color: AppColors.surface2.withValues(alpha: 0.5),
-                  borderRadius: BorderRadius.circular(6),
-                ),
-                child: Row(
-                  children: [
-                    const Icon(Icons.folder, size: 12, color: AppColors.textDim),
-                    const SizedBox(width: 4),
-                    Expanded(
-                      child: Text(
-                        settings.exportPath,
-                        style: const TextStyle(fontSize: 9, color: AppColors.textDim),
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton.icon(
-                  onPressed: _exportSvg,
-                  icon: const Icon(Icons.save_alt, size: 18),
-                  label: const Text('Exportar SVG'),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.success,
-                    foregroundColor: Colors.white,
-                    padding: const EdgeInsets.symmetric(vertical: 10),
-                  ),
-                ),
-              ),
-            ],
-          ),
-        );
-      },
-    );
-  }
-
-  void _renameWorkspace() {
-    final provider = context.read<SvgProvider>();
-    final controller = TextEditingController(text: provider.activeWorkspace.name);
-
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        backgroundColor: AppColors.surface2,
-        title: const Text('Renombrar espacio', style: TextStyle(color: AppColors.text)),
-        content: TextField(
-          controller: controller,
-          autofocus: true,
-          style: const TextStyle(color: AppColors.text),
-          decoration: const InputDecoration(
-            hintText: 'Nombre del espacio',
-            hintStyle: TextStyle(color: AppColors.textDim),
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Cancelar'),
-          ),
-          TextButton(
-            onPressed: () {
-              if (controller.text.trim().isNotEmpty) {
-                provider.renameWorkspace(controller.text.trim());
-              }
-              Navigator.pop(context);
-            },
-            child: const Text('Guardar', style: TextStyle(color: AppColors.accent)),
-          ),
-        ],
-      ),
     );
   }
 

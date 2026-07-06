@@ -1,7 +1,7 @@
 # 🧪 Informes de Aseguramiento de Calidad (QA)
 
 > **Proyecto:** SVG Animated FTL  
-> **Versión:** 1.0.5  
+> **Versión:** 1.2.0  
 > **Fecha del reporte:** Julio 2026  
 > **Cobertura total:** 72.0%
 
@@ -15,6 +15,7 @@
 | [`CODE_ANALYSIS.md`](./CODE_ANALYSIS.md) | Advertencias de `flutter analyze`: APIs deprecadas, imports no usados, operadores null-aware inválidos |
 | [`COVERAGE_GAPS.md`](./COVERAGE_GAPS.md) | Análisis de cobertura: código no testeado por archivo, directorios con baja cobertura |
 | [`POTENTIAL_BUGS.md`](./POTENTIAL_BUGS.md) | Bugs identificados en el código fuente: errores de tipos, lógica incorrecta, riesgos de runtime |
+| [`QA_TESTING_REPORT.md`](./QA_TESTING_REPORT.md) | Reporte completo de QA: 20 hallazgos (6 criticos, 5 altos, 5 medios, 4 bajos) con tabla de seguimiento |
 
 ---
 

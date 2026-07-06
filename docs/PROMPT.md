@@ -21,9 +21,9 @@ usar como logo o simbolo de la aplicacion assets/logo.cvg es el que va a aparece
 ### pubspec.yaml
 ```yaml
 name: svg_animated_ftl
-description: Aplicación móvil para animar archivos SVG
+description: Aplicacion movil para animar archivos SVG
 publish_to: 'none'
-version: 1.0.0+1
+version: 1.2.0
 
 environment:
   sdk: '>=3.0.0 <4.0.0'
@@ -76,59 +76,42 @@ lib/
 │   ├── background_image.dart          # Modelo de imagen de fondo
 │   └── svg_element.dart               # Elemento SVG parseado
 ├── providers/
-│   ├── svg_provider.dart              # Estado global (ChangeNotifier)
-│   └── theme_provider.dart            # Tema de la app
+│   ├── svg_provider.dart              # Estado global (ChangeNotifier, 375 lineas)
+│   ├── settings_provider.dart         # Settings (export path, opacidades, speed)
+│   └── theme_provider.dart            # Theme toggle (dark/light)
 ├── screens/
-│   └── home_screen.dart               # Pantalla principal
+│   ├── splash_screen.dart             # Splash 3s con fade + logo
+│   └── home_screen.dart               # Pantalla principal (596 lineas, 4 tabs)
 ├── widgets/
-│   ├── svg_preview.dart               # Área de previsualización SVG
-│   ├── bottom_nav.dart                # Barra inferior de navegación
+│   ├── svg_preview.dart               # Preview con InteractiveViewer + AnimationScope
+│   ├── individual_elements_view.dart  # Renderiza cada elemento SVG animado
+│   ├── animation_scope.dart           # InheritedWidget con AnimationController
+│   ├── bottom_nav.dart                # Barra inferior con 4 tabs
 │   ├── panel_slider.dart              # Panel deslizante desde abajo
-│   ├── animation_grid.dart            # Grid de presets de animación
-│   ├── animation_preset_button.dart   # Botón individual de preset
+│   ├── animation_grid.dart            # Grid 4 columnas de 24 presets
 │   ├── controls_panel.dart            # Panel de controles
 │   ├── elements_list.dart             # Lista de elementos del SVG
-│   ├── element_tile.dart              # Tile individual de elemento
 │   ├── shapes_grid.dart               # Grid de formas predefinidas
-│   ├── shape_button.dart              # Botón individual de forma
 │   ├── pieces_overlay.dart            # Overlay de modo piezas
 │   ├── trajectory_editor.dart         # Editor de trayectorias
-│   ├── trajectory_overlay.dart        # Overlay de puntos de trayectoria
+│   ├── trajectory_overlay.dart        # CustomPainter de trayectorias
 │   ├── zoom_controls.dart             # Controles de zoom
-│   ├── background_layer.dart          # Capa de imágenes de fondo
-│   ├── direction_pad.dart             # Pad de direcciones cardinales
+│   ├── background_layer.dart          # Capa de imagenes de fondo
+│   ├── direction_pad.dart             # Pad 8 direcciones cardinales
 │   ├── slider_control.dart            # Slider reutilizable
-│   ├── toggle_group.dart              # Grupo de toggles reutilizable
-│   └── empty_state.dart               # Estado vacío del preview
+│   ├── toggle_group.dart              # Toggle buttons reutilizables
+│   └── empty_state.dart               # Estado vacio del preview
 ├── services/
 │   ├── svg_parser.dart                # Parseo de SVG
-│   ├── animation_engine.dart          # Motor de animaciones
-│   ├── export_service.dart            # Servicio de exportación
-│   └── file_service.dart              # Servicio de archivos
-├── widgets/animations/
-│   ├── rotate_animation.dart
-│   ├── wheel_animation.dart
-│   ├── pulse_animation.dart
-│   ├── bounce_animation.dart
-│   ├── gravity_animation.dart
-│   ├── slide_animation.dart
-│   ├── oval_animation.dart
-│   ├── fade_animation.dart
-│   ├── draw_animation.dart
-│   ├── shake_animation.dart
-│   ├── float_animation.dart
-│   ├── levitate_animation.dart
-│   ├── arc_animation.dart
-│   ├── radiate_animation.dart
-│   ├── spin_animation.dart
-│   ├── glow_animation.dart
-│   ├── wave_sine_animation.dart
-│   ├── wave_square_animation.dart
-│   └── wave_triangle_animation.dart
-└── utils/
-    ├── svg_utils.dart                 # Utilidades SVG
-    ├── math_utils.dart                # Utilidades matemáticas
-    └── file_utils.dart                # Utilidades de archivos
+│   ├── animation_engine.dart          # Motor de animaciones (24 presets, 460 lineas)
+│   ├── animation_service.dart         # Gestion de configs de animacion
+│   ├── selection_service.dart         # Logica de seleccion
+│   ├── group_service.dart             # CRUD de grupos
+│   ├── history_service.dart           # Undo/Redo via snapshots
+│   ├── trajectory_service.dart        # CRUD de trayectorias
+│   ├── export_service.dart            # Genera SVG con CSS keyframes (288 lineas)
+│   ├── file_service.dart              # CRUD archivos (sin uso actual)
+│   └── permission_service.dart        # Permisos (sin uso actual)
 ```
 
 ---
@@ -249,7 +232,7 @@ class AnimationConfig extends HiveObject {
 
   AnimationConfig({
     this.presetId,
-    this.speed = 1.0,
+    this.speed = 16.0,
     this.delay = 0.0,
     this.iter = 'infinite',
     this.dir = 'normal',
@@ -322,7 +305,7 @@ class AnimationConfig extends HiveObject {
   factory AnimationConfig.fromJson(Map<String, dynamic> json) {
     return AnimationConfig(
       presetId: json['presetId'],
-      speed: (json['speed'] ?? 1.0).toDouble(),
+      speed: (json['speed'] ?? 16.0).toDouble(),
       delay: (json['delay'] ?? 0.0).toDouble(),
       iter: json['iter'] ?? 'infinite',
       dir: json['dir'] ?? 'normal',
@@ -349,6 +332,7 @@ class Workspace {
   String? originalSvgString;
   Map<int, AnimationConfig> elementAnimations;
   Map<String, Group> elementGroups;
+  Map<int, Offset> elementOffsets;
   int? selectedElementIndex;
   List<int> selectedGroupElements;
   bool isMultiSelectMode;
@@ -1248,6 +1232,18 @@ class AnimationEngine {
           return _buildWaveSquare(child, animation, config.directionAngle);
         case 'wave-triangle':
           return _buildWaveTriangle(child, animation, config.directionAngle);
+        case 'pendulum':
+          return _buildPendulum(child, animation);
+        case 'freefall':
+          return _buildFreefall(child, animation);
+        case 'elastic-bounce':
+          return _buildElasticBounce(child, animation);
+        case 'spring':
+          return _buildSpring(child, animation);
+        case 'draw':
+          return _buildDraw(child, animation);
+        case 'opacity-anim':
+          return _buildOpacityAnim(child, animation);
         default:
           return child;
       }
@@ -1571,6 +1567,11 @@ class AnimationPresets {
     {'name': 'Senoidal', 'id': 'wave-sine', 'color': '#1abc9c', 'duration': 3.0, 'easing': 'easeInOut', 'translatable': true},
     {'name': 'Cuadrada', 'id': 'wave-square', 'color': '#e74c3c', 'duration': 1.5, 'easing': 'linear', 'translatable': true},
     {'name': 'Triangular', 'id': 'wave-triangle', 'color': '#9b59b6', 'duration': 2.0, 'easing': 'linear', 'translatable': true},
+    {'name': 'Péndulo', 'id': 'pendulum', 'color': '#e74c3c', 'duration': 2.0, 'easing': 'easeInOut'},
+    {'name': 'Caida Libre', 'id': 'freefall', 'color': '#1abc9c', 'duration': 1.5, 'easing': 'easeIn'},
+    {'name': 'Rebote Elastico', 'id': 'elastic-bounce', 'color': '#f39c12', 'duration': 1.0, 'easing': 'easeOut'},
+    {'name': 'Resorte', 'id': 'spring', 'color': '#9b59b6', 'duration': 2.0, 'easing': 'elasticOut'},
+    {'name': 'Opacidad', 'id': 'opacity-anim', 'color': '#e74c3c', 'duration': 2.0, 'easing': 'easeInOut'},
   ];
   
   static const List<Map<String, dynamic>> shapes = [

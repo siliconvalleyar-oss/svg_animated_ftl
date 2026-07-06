@@ -1,6 +1,37 @@
 # Historial de Commits y Cambios por Versión
 
-> Este archivo documenta todos los cambios realizados en cada versión (tag) del proyecto.
+> Este archivo documenta todos los cambios realizados en cada version (tag) del proyecto.
+
+---
+
+## v1.2.0 — Actual
+
+**Fecha:** Julio 2026
+**Mensaje:** `docs: actualizacion completa de documentacion y reportes QA`
+
+### Cambios
+
+- Reporte QA completo: 20 hallazgos (6 criticos, 5 altos, 5 medios, 4 bajos)
+- Actualizada documentacion para reflejar estado real del codigo
+- Skill svg-flutter actualizado con bugs conocidos y estructura correcta
+- Nuevo archivo docs/BUGS.md con registro de bugs conocidos
+- Corregidas incongruencias en ANALYSIS.md, DEVELOPMENT.md, SKILL.md
+- Actualizado reports/ con nuevo QA_TESTING_REPORT.md
+
+### Archivos modificados
+
+| Archivo | Cambio |
+|---------|--------|
+| `docs/README.md` | Estructura de archivos corregida, 4 tabs, sin export_screen |
+| `docs/ANALYSIS.md` | Stats actualizados (version, lineas, providers, widgets, servicios) |
+| `docs/DEVELOPMENT.md` | Estructura de archivos corregida, servicios agregados |
+| `docs/SKILL.md` | Version 1.2.0, bugs conocidos, servicios actualizados |
+| `docs/PIECES.md` | Comportamiento corregido (tap toggle, sin pause de animaciones) |
+| `docs/BUGS.md` | Nuevo — registro de 20 bugs conocidos |
+| `docs/COMMITS.md` | Este registro |
+| `.agents/skills/svg-flutter/SKILL.md` | Skill actualizado |
+| `reports/QA_TESTING_REPORT.md` | Reporte QA completo |
+| `reports/README.md` | Version y referencia a nuevo reporte |
 
 ---
 

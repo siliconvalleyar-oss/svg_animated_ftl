@@ -97,6 +97,11 @@ class ElementsList extends StatelessWidget {
                                 ],
                               ),
                             ),
+                            if (config?.presetId != null)
+                              Padding(
+                                padding: const EdgeInsets.only(right: 4),
+                                child: Icon(_getEffectIcon(config!.presetId!), size: 18, color: AppColors.textDim),
+                              ),
                             if (isSelected)
                               const Icon(Icons.check_circle, size: 18, color: AppColors.accent)
                             else
@@ -258,6 +263,61 @@ class ElementsList extends StatelessWidget {
         return Icons.text_fields;
       default:
         return Icons.help_outline;
+    }
+  }
+
+  IconData _getEffectIcon(String presetId) {
+    switch (presetId) {
+      case 'rotate':
+        return Icons.rotate_right;
+      case 'wheel':
+        return Icons.radio_button_checked;
+      case 'pulse':
+        return Icons.waves;
+      case 'bounce':
+        return Icons.arrow_upward;
+      case 'gravity':
+        return Icons.arrow_downward;
+      case 'slide':
+        return Icons.arrow_forward;
+      case 'oval':
+        return Icons.blur_circular;
+      case 'fade':
+        return Icons.opacity;
+      case 'draw':
+        return Icons.brush;
+      case 'shake':
+        return Icons.vibration;
+      case 'float':
+        return Icons.cloud;
+      case 'levitate':
+        return Icons.arrow_upward;
+      case 'projectile':
+        return Icons.rocket_launch;
+      case 'radiate':
+        return Icons.radar;
+      case 'spin':
+        return Icons.trip_origin;
+      case 'glow':
+        return Icons.flare;
+      case 'wave-sine':
+        return Icons.emergency;
+      case 'wave-square':
+        return Icons.wifi;
+      case 'wave-triangle':
+        return Icons.change_history;
+      case 'pendulum':
+        return Icons.science;
+      case 'freefall':
+        return Icons.arrow_circle_down;
+      case 'elastic-bounce':
+        return Icons.show_chart;
+      case 'spring':
+        return Icons.blur_on;
+      case 'opacity-anim':
+        return Icons.invert_colors;
+      default:
+        return Icons.animation;
     }
   }
 }

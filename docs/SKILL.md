@@ -9,7 +9,7 @@
 
 Flutter mobile app for animating SVG files with 24 preset animations, offline-first, no server required.
 
-- **Version**: 1.0.5
+- **Version**: 1.2.0
 - **Platforms**: Android 5.0+ / iOS 12.0+
 - **Stack**: Flutter 3.0+, Dart 3.0+, Provider, Hive, flutter_svg, xml
 - **Lines of code**: ~3,434 in 37 Dart files
@@ -25,14 +25,15 @@ Flutter mobile app for animating SVG files with 24 preset animations, offline-fi
 
 ```
 lib/
-├── main.dart              → Entry point, Hive init, Provider setup
+├── main.dart              → Entry point, Hive init, Provider setup (3 providers)
 ├── app.dart               → MaterialApp + dark theme
-├── core/                  → Constants, theme, extensions
+├── core/                  → Constants (24+12 presets), theme, extensions
 ├── models/                → Workspace, AnimationConfig, Group, Trajectory, etc.
-├── providers/             → SvgProvider (global state), ThemeProvider
-├── services/              → SVG parser, animation engine, export, file I/O
-├── screens/               → HomeScreen
-└── widgets/               → 17 reusable widgets
+├── providers/             → SvgProvider, SettingsProvider, ThemeProvider
+├── services/              → 10 services (parser, animation, export, selection, etc.)
+├── screens/               → SplashScreen, HomeScreen
+├── widgets/               → 18 reusable widgets
+└── test/                  → ~153 tests in 11 files
 ```
 
 ### Key Files
@@ -41,12 +42,12 @@ lib/
 |------|---------|
 | `lib/main.dart` | Entry point, Hive init, Provider setup |
 | `lib/app.dart` | MaterialApp, theme, routing |
-| `lib/providers/svg_provider.dart` | Global state (ChangeNotifier) — 526 lines |
+| `lib/providers/svg_provider.dart` | Global state (ChangeNotifier) — 375 lines |
 | `lib/services/svg_parser.dart` | SVG parsing to element list |
-| `lib/services/animation_engine.dart` | Animation building (Tween + Curves) — 327 lines |
-| `lib/services/export_service.dart` | SVG export with embedded CSS keyframes |
-| `lib/core/constants.dart` | Colors, presets, shapes |
-| `lib/screens/home_screen.dart` | Main screen with bottom nav + panels — 278 lines |
+| `lib/services/animation_engine.dart` | Animation building (24 presets) — 460 lines |
+| `lib/services/export_service.dart` | SVG export with embedded CSS keyframes — 288 lines |
+| `lib/core/constants.dart` | Colors, presets (24+12), AppConstants |
+| `lib/screens/home_screen.dart` | Main screen with bottom nav + 4 panels — 596 lines |
 
 ### Data Flow
 
@@ -59,7 +60,8 @@ User Action → Widget → SvgProvider (ChangeNotifier) → notifyListeners() �
 ### Animation Flow
 
 ```
-SvgPreview (AnimationController)
+SvgPreview → AnimationScope (InheritedWidget + AnimationController)
+    → IndividualElementsView
     → SvgParser.parse() → List<SvgElement>
     → AnimationEngine.buildAnimation() → Widget animado
     → ExportService.generateAnimatedSvg() → SVG con CSS keyframes embebido
@@ -100,30 +102,37 @@ SvgPreview (AnimationController)
 |---------|------|---------|
 | SvgParser | `svg_parser.dart` | Parse SVG, extract elements, viewBox |
 | AnimationEngine | `animation_engine.dart` | Build 24 animations with AnimatedBuilder |
+| AnimationService | `animation_service.dart` | Animation config management |
+| SelectionService | `selection_service.dart` | Element selection logic |
+| GroupService | `group_service.dart` | Group CRUD |
+| HistoryService | `history_service.dart` | Undo/redo via snapshots |
+| TrajectoryService | `trajectory_service.dart` | Trajectory CRUD |
 | ExportService | `export_service.dart` | Generate SVG with embedded CSS keyframes |
-| FileService | `file_service.dart` | CRUD operations on device storage |
-| PermissionService | `permission_service.dart` | Storage and photos permissions |
+| FileService | `file_service.dart` | CRUD on device storage (unused) |
+| PermissionService | `permission_service.dart` | Storage/photos permissions (unused) |
 
-### Widgets (17 total)
+### Widgets (18 total)
 
 | Widget | Purpose |
 |--------|---------|
-| `SvgPreview` | Preview with InteractiveViewer + AnimationController |
-| `BottomNav` | 5-tab bottom navigation bar |
+| `SvgPreview` | Preview with InteractiveViewer + AnimationScope |
+| `IndividualElementsView` | Renders each SVG element as animated widget |
+| `AnimationScope` | InheritedWidget with shared AnimationController |
+| `BottomNav` | 4-tab bottom navigation bar |
 | `PanelSlider` | Animated sliding panel |
-| `AnimationGrid` | 3-column grid of 24 presets |
+| `AnimationGrid` | 4-column grid of 24 presets |
 | `ControlsPanel` | Sliders + toggles + direction pad |
 | `ElementsList` | Element list with selection and groups |
-| `ShapesGrid` | 3-column grid of 12 predefined shapes |
+| `ShapesGrid` | Grid of 12 predefined shapes |
 | `PiecesOverlay` | Interactive pieces mode overlay |
 | `TrajectoryEditor` | Trajectory editor with add/delete |
+| `TrajectoryOverlay` | CustomPaint trajectory renderer |
 | `EmptyState` | Empty state when no SVG loaded |
 | `SliderControl` | Reusable slider widget |
 | `ToggleGroup` | Reusable toggle buttons |
-| `DirectionPad` | 3×3 cardinal direction pad |
+| `DirectionPad` | 8-direction compass pad |
 | `BackgroundLayer` | Background image layer |
 | `ZoomControls` | Floating zoom buttons |
-| `TrajectoryOverlay` | CustomPaint trajectory renderer |
 
 ---
 
@@ -347,14 +356,20 @@ _applyToSelectedElements((idx, cfg) => cfg.speed = speed);
 
 ## 11. TODO & KNOWN ISSUES
 
+### Known Bugs (see docs/BUGS.md)
+- PiecesOverlay drag broken (local state only)
+- SvgParser ignores nested elements in `<g>`
+- moveSelectedElements doesn't persist
+- Undo/Redo doesn't restore elementOffsets
+- gravity export ignores directionAngle
+- freefall export distance is 2x
+- ThemeProvider not connected to MaterialApp
+
 ### Technical Debt
-- SvgProvider (526 lines) should be split into smaller providers
+- SvgProvider (375 lines) should be split into smaller providers
 - AnimationConfig (19 fields) should use sub-objects
-- TrajectoryPainter uses `Map<String, dynamic>` instead of typed `Trajectory`
-- `draw` animation declared but not implemented in AnimationEngine
-- No Hive type adapters generated (missing `.g.dart` files)
-- No unit or widget tests
-- 24 animations in 3-column grid = 8 rows (too many for mobile)
+- FileService and PermissionService are unused (dead code)
+- VERSION vs pubspec.yaml version mismatch
 
 ### Strengths
 - Clean Provider/ChangeNotifier architecture
@@ -369,4 +384,4 @@ _applyToSelectedElements((idx, cfg) => cfg.speed = speed);
 ---
 
 *Este archivo es instalable como skill con: `npx skills add . --skill svg-flutter --yes`*
-*Última actualización: Julio 2026*
+*Ultima actualizacion: Julio 2026*

@@ -46,6 +46,27 @@ class _PiecesOverlayState extends State<PiecesOverlay> {
                   child: Container(color: Colors.transparent),
                 ),
               ),
+
+            // Mode indicator badge
+            Positioned(
+              left: 8,
+              top: 8,
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                decoration: BoxDecoration(
+                  color: AppColors.accent,
+                  borderRadius: BorderRadius.circular(4),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Icon(Icons.touch_app, size: 12, color: Colors.white),
+                    const SizedBox(width: 4),
+                    const Text('Modo Piezas', style: TextStyle(color: Colors.white, fontSize: 10)),
+                  ],
+                ),
+              ),
+            ),
           ],
         );
       },

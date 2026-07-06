@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg height="366" viewBox="0 0 366 366" width="366" xmlns="http://www.w3.org/2000/svg">
+  <style>@keyframes svgSlide_0 { 0%, 100% { transform: translateX(0); } 50% { transform: translateX(80px); } } @keyframes svgRotate_1 { from { transform: rotate(0deg); } to { transform: rotate(360deg); } } @keyframes svgSlide_2 { 0%, 100% { transform: translateX(0); } 50% { transform: translateX(80px); } } @keyframes svgRotate_3 { from { transform: rotate(0deg); } to { transform: rotate(360deg); } } @keyframes svgPulse_4 { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.15); } } @keyframes svgFade_6 { 0%, 100% { opacity: 1; } 50% { opacity: 0.15; } } @keyframes svgRotate_7 { from { transform: rotate(0deg); } to { transform: rotate(360deg); } } @keyframes svgPulse_9 { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.15); } } @keyframes svgPulse_8 { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.15); } } [data-anim-index="0"] { animation: svgSlide_0 25.49s ease-in-out infinite 0.0s normal; transform-origin: center; transform-box: fill-box; } [data-anim-index="1"] { animation: svgRotate_1 25.49s linear infinite 0.0s normal; transform-origin: center; transform-box: fill-box; } [data-anim-index="2"] { animation: svgSlide_2 25.49s ease-in-out infinite 0.0s normal; transform-origin: center; transform-box: fill-box; } [data-anim-index="3"] { animation: svgRotate_3 25.49s linear infinite 0.0s normal; transform-origin: center; transform-box: fill-box; } [data-anim-index="4"] { animation: svgPulse_4 42.15s ease-in-out random 0.0s alternate; transform-origin: center; transform-box: fill-box; } [data-anim-index="6"] { animation: svgFade_6 27.87s ease-in-out random 0.0s alternate; transform-origin: center; transform-box: fill-box; } [data-anim-index="7"] { animation: svgRotate_7 16.0s linear random 0.0s alternate; transform-origin: center; transform-box: fill-box; } [data-anim-index="9"] { animation: svgPulse_9 42.15s ease-in-out infinite 0.0s normal; transform-origin: center; transform-box: fill-box; } [data-anim-index="8"] { animation: svgPulse_8 42.15s ease-in-out infinite 0.0s normal; transform-origin: center; transform-box: fill-box; }</style>
+  <!-- Blue outer (semi) -->
+  <path d="m18.997 106.524c-42.236 90.576-3.049 198.242 87.527 240.479 90.576 42.236 198.242 3.049 240.479-87.527 42.236-90.576 3.049-198.242-87.527-240.479-90.576-42.236-198.242-3.049-240.479 87.527z" fill="none" opacity=".191" stroke="#659cc8" stroke-dasharray="76 4 70" stroke-width="2" data-anim-index="0"/>
+  <!-- Blue outer -->
+  <circle cx="183" cy="183" fill="none" r="181" stroke="#659cc8" stroke-dasharray="2 45 161" stroke-width="2" data-anim-index="1"/>
+  <!-- Green outer -->
+  <circle cx="183" cy="183" fill="none" r="159" stroke="#78af9f" stroke-dasharray="76 4 70" stroke-width="4" data-anim-index="2"/>
+  <!-- Green outer (semi) -->
+  <circle cx="183" cy="183" fill="none" opacity=".278" r="159" stroke="#78af9f" stroke-dasharray="46 2 12" stroke-width="4" data-anim-index="3"/>
+  <!-- Yellow outer -->
+  <circle cx="183" cy="183" fill="none" r="150" stroke="#dda032" stroke-dasharray="76 2 40 180" stroke-width="8" data-anim-index="4"/>
+  <!-- Yellow outer (semi) -->
+  <path d="m92.733 302.788c66.157 49.854 160.202 36.636 210.055-29.52 49.854-66.158 36.636-160.203-29.52-210.056-66.158-49.854-160.203-36.636-210.056 29.52-49.854 66.158-36.636 160.203 29.52 210.056z" fill="none" opacity=".688" stroke="#dda032" stroke-dasharray="56 2 4" stroke-width="8" data-anim-index="5"/>
+  <!-- Orange outer -->
+  <circle cx="183" cy="183" fill="none" r="141" stroke="#d36e2d" stroke-dasharray="51 4 10 80" stroke-width="4" data-anim-index="6"/>
+  <!-- Orange outer (semi) -->
+  <path d="m251.346 306.299c68.096-37.746 92.7-123.549 54.953-191.645-37.746-68.096-123.549-92.7-191.645-54.953-68.096 37.746-92.7 123.549-54.953 191.645 37.746 68.096 123.549 92.7 191.645 54.953z" fill="none" opacity=".441" stroke="#d36e2d" stroke-dasharray="140 4 10 80" stroke-width="4" data-anim-index="7"/>
+  <!-- Red inner -->
+  <circle cx="183" cy="183" fill="none" r="130" stroke="#c13f21" stroke-dasharray="35 7 10 80" stroke-width="2" data-anim-index="8"/>
+  <!-- Red inner (semi) -->
+  <circle cx="183" cy="183" fill="none" opacity=".278" r="130" stroke="#c13f21" stroke-dasharray="35 7 10 80" stroke-width="2" data-anim-index="9"/>
+</svg>

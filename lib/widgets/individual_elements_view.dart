@@ -49,6 +49,7 @@ class IndividualElementsView extends StatelessWidget {
               final index = svgEl.index;
               final config = provider.elementAnimations[index];
               final isSelected = selectedElements.contains(index);
+              final offset = provider.activeWorkspace.elementOffsets[index];
 
               final miniSvg = _buildMiniSvg(
                 svgElement: svgEl.element,
@@ -60,6 +61,13 @@ class IndividualElementsView extends StatelessWidget {
                 miniSvg,
                 fit: BoxFit.contain,
               );
+
+              if (offset != null && (offset.dx != 0 || offset.dy != 0)) {
+                elementWidget = Transform.translate(
+                  offset: offset,
+                  child: elementWidget,
+                );
+              }
 
               // Apply animation if config has preset AND controller is running
               if (config?.presetId != null && ctrl != null) {

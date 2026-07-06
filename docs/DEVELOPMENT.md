@@ -35,31 +35,45 @@
 - **theme_provider.dart**: Tema oscuro de la app
 
 ### `lib/screens/`
-- **home_screen.dart**: Layout principal (preview + bottom nav + paneles)
-- **export_screen.dart**: Pantalla de opciones de exportación
+- **splash_screen.dart**: Splash de 3s con fade + logo SVG
+- **home_screen.dart**: Layout principal (596 lineas, preview + bottom nav + 4 paneles)
 
 ### `lib/widgets/`
-- **svg_preview.dart**: Área de previsualización con InteractiveViewer (pinch-to-zoom)
-- **bottom_nav.dart**: Barra inferior con 5 tabs
+- **svg_preview.dart**: Area de previsualizacion con InteractiveViewer + AnimationScope
+- **individual_elements_view.dart**: Renderiza cada elemento SVG como widget animado
+- **animation_scope.dart**: InheritedWidget con AnimationController compartido
+- **bottom_nav.dart**: Barra inferior con 4 tabs
 - **panel_slider.dart**: Panel deslizante desde abajo (AnimatedPositioned)
-- **animation_grid.dart**: Grid 2 columnas de presets de animación
+- **animation_grid.dart**: Grid 4 columnas de presets de animacion
 - **controls_panel.dart**: Sliders y toggles de controles
 - **elements_list.dart**: Lista scrollable de elementos del SVG
-- **shapes_grid.dart**: Grid 3 columnas de formas predefinidas
+- **shapes_grid.dart**: Grid de formas predefinidas
 - **pieces_overlay.dart**: Overlay interactivo para modo piezas
+- **trajectory_overlay.dart**: CustomPainter de trayectorias
 - **trajectory_editor.dart**: Editor visual de trayectorias
 - **zoom_controls.dart**: Botones flotantes de zoom
-- **background_layer.dart**: Capa de imágenes de fondo
+- **background_layer.dart**: Capa de imagenes de fondo
+- **slider_control.dart**: Slider reutilizable
+- **toggle_group.dart**: Toggle buttons reutilizables
+- **direction_pad.dart**: Pad 8 direcciones cardinales
+- **empty_state.dart**: Estado vacio del preview
 
 ### `lib/services/`
 - **svg_parser.dart**: Parseo de SVG a estructura de elementos
-- **animation_engine.dart**: Generación de animaciones (Tween, Curves)
-- **export_service.dart**: Generación de SVG exportado
-- **file_service.dart**: Lectura/escritura de archivos en dispositivo
+- **animation_engine.dart**: Generacion de animaciones (24 presets, 460 lineas)
+- **animation_service.dart**: Gestion de configs de animacion
+- **selection_service.dart**: Logica de seleccion
+- **group_service.dart**: CRUD de grupos
+- **history_service.dart**: Undo/Redo via snapshots
+- **trajectory_service.dart**: CRUD de trayectorias
+- **export_service.dart**: Generacion de SVG con CSS keyframes (288 lineas)
+- **file_service.dart**: CRUD archivos en dispositivo (sin uso actual)
+- **permission_service.dart**: Permisos Android/iOS (sin uso actual)
 
-### `lib/utils/`
-- **svg_utils.dart**: Utilidades (calcular centro, getBBox, etc.)
-- **constants.dart**: Colores, dimensiones, valores por defecto
+### `lib/core/`
+- **constants.dart**: AppColors, AnimationPresets (24+12), AppConstants
+- **theme.dart**: AppTheme.darkTheme
+- **extensions.dart**: String.capitalize(), Double.toFixed()
 
 ## Agregar nueva animación
 

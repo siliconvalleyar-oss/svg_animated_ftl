@@ -1,6 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:svg_animated_ftl/services/svg_parser.dart';
-import 'package:svg_animated_ftl/models/svg_element.dart';
 
 void main() {
   group('SvgParser', () {

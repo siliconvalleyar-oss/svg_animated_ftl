@@ -20,10 +20,10 @@ El modo piezas permite interactuar con elementos individuales dentro de un SVG d
 - El movimiento se escala automáticamente al espacio de coordenadas del SVG
 - Se aplica `Transform.translate()` al widget del elemento
 
-### Multi-selección
-- **Long-press** en un elemento para activar multi-selección
-- Tocar otros elementos para agregar/quitar de la selección
-- Botón "Crear grupo" aparece cuando hay ≥2 elementos seleccionados
+### Multi-seleccion
+- **Tocar** un elemento para seleccionar/deseleccionar (toggle)
+- Tocar otros elementos para agregar/quitar de la seleccion
+- Boton "Agrupar seleccionadas" aparece cuando hay 2+ elementos seleccionados
 
 ### Deseleccionar
 - Tocar fuera de cualquier elemento
@@ -41,10 +41,11 @@ El panel muestra una lista de todos los elementos del SVG:
 
 ## Comportamiento
 
-- Las animaciones se pausan automáticamente al entrar al modo piezas (`AnimationController.stop()`)
-- Las animaciones se reanudan al salir del modo (`AnimationController.repeat()`)
+- Al activar modo piezas, se deseleccionan todos los elementos
+- El overlay de piezas se renderiza encima del SVG
+- Tap en el overlay limpia la seleccion
+- Drag en el overlay mueve los elementos seleccionados (ver bug conocido)
 - Los movimientos se aplican via `Transform.translate()` en el widget
-- Los movimientos son relativos a la posición original del elemento
 - El estado se guarda por workspace
 
 ## Implementación en Flutter

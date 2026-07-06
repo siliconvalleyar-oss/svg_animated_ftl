@@ -3,60 +3,46 @@ import '../core/constants.dart';
 
 class ZoomControls extends StatelessWidget {
   final TransformationController? controller;
+  final Size viewportSize;
 
-  const ZoomControls({Key? key, this.controller}) : super(key: key);
+  const ZoomControls({Key? key, this.controller, this.viewportSize = Size.zero}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        final viewportW = constraints.maxWidth;
-        final viewportH = constraints.maxHeight;
-        return Positioned(
-          right: 8,
-          top: 8,
-          child: Column(
-            children: [
-              _buildButton(
-                icon: Icons.add,
-                onTap: () {
-                  if (controller != null) {
-                    final matrix = controller!.value.clone();
-                    final scaleMatrix = Matrix4.diagonal3Values(1.03, 1.03, 1.0);
-                    controller!.value = scaleMatrix * matrix;
-                  }
-                },
-              ),
-              const SizedBox(height: 4),
-              _buildButton(
-                icon: Icons.remove,
-                onTap: () {
-                  if (controller != null) {
-                    final matrix = controller!.value.clone();
-                    final scaleMatrix = Matrix4.diagonal3Values(0.97, 0.97, 1.0);
-                    controller!.value = scaleMatrix * matrix;
-                  }
-                },
-              ),
-              const SizedBox(height: 4),
-              _buildButton(
-                icon: Icons.center_focus_strong,
-                onTap: () {
-                  if (controller != null) {
-                    final current = controller!.value.clone();
-                    final scale = current.getMaxScaleOnAxis();
-                    final tx = viewportW / 2 * (1 - scale);
-                    final ty = viewportH / 2 * (1 - scale);
-                    current.setTranslationRaw(tx, ty, 0);
-                    controller!.value = current;
-                  }
-                },
-              ),
-            ],
-          ),
-        );
-      },
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        _buildButton(
+          icon: Icons.add,
+          onTap: () => _zoom(1.03),
+        ),
+        const SizedBox(height: 4),
+        _buildButton(
+          icon: Icons.remove,
+          onTap: () => _zoom(0.97),
+        ),
+        const SizedBox(height: 4),
+        _buildButton(
+          icon: Icons.center_focus_strong,
+          onTap: () {
+            if (controller != null) {
+              controller!.value = Matrix4.identity();
+            }
+          },
+        ),
+      ],
     );
+  }
+
+  void _zoom(double factor) {
+    if (controller == null || viewportSize == Size.zero) return;
+    final matrix = controller!.value.clone();
+    final cx = viewportSize.width / 2;
+    final cy = viewportSize.height / 2;
+    final translateCenter = Matrix4.translationValues(cx, cy, 0);
+    final translateBack = Matrix4.translationValues(-cx, -cy, 0);
+    final scaleMatrix = Matrix4.diagonal3Values(factor, factor, 1.0);
+    controller!.value = translateCenter * scaleMatrix * translateBack * matrix;
   }
 
   Widget _buildButton({required IconData icon, required VoidCallback onTap}) {

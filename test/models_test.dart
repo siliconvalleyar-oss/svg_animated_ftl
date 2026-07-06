@@ -11,7 +11,7 @@ void main() {
       final config = AnimationConfig();
 
       expect(config.presetId, isNull);
-      expect(config.speed, equals(4.0));
+      expect(config.speed, equals(16.0));
       expect(config.delay, equals(0.0));
       expect(config.iter, equals('infinite'));
       expect(config.dir, equals('normal'));
@@ -143,7 +143,7 @@ void main() {
       final config = AnimationConfig.fromJson({});
 
       expect(config.presetId, isNull);
-      expect(config.speed, equals(4.0));
+      expect(config.speed, equals(16.0));
       expect(config.delay, equals(0.0));
       expect(config.iter, equals('infinite'));
       expect(config.dir, equals('normal'));
@@ -478,7 +478,7 @@ void main() {
       expect(group.color, equals('#ff0000'));
       expect(group.elements, isEmpty);
       expect(group.config, isA<AnimationConfig>());
-      expect(group.config.speed, equals(4.0));
+      expect(group.config.speed, equals(16.0));
     });
 
     test('constructor with all fields', () {

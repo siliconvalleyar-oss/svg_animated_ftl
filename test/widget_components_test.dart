@@ -45,6 +45,22 @@ class MockSettingsProvider extends ChangeNotifier implements SettingsProvider {
   }
 
   @override
+  double get defaultSpeed => 16.0;
+
+  @override
+  double get selectedOpacity => 1.0;
+
+  @override
+  Future<void> setDefaultSpeed(double speed) async {
+    notifyListeners();
+  }
+
+  @override
+  Future<void> setSelectedOpacity(double opacity) async {
+    notifyListeners();
+  }
+
+  @override
   Future<void> init() async {}
 }
 
@@ -235,6 +251,12 @@ class MockSvgProvider extends ChangeNotifier implements SvgProvider {
 
   @override
   void setZoom(double level) {}
+
+  @override
+  void moveSelectedElements(double dx, double dy) {}
+
+  @override
+  void resetElementOffsets() {}
 
   @override
   Future<void> init() async {}
@@ -842,16 +864,16 @@ void main() {
       expect(find.text('Velocidad'), findsOneWidget);
       expect(find.text('Retraso'), findsOneWidget);
 
-      // Default values
-      expect(find.text('1.0s'), findsOneWidget);
+      // Default values from MockSettingsProvider.defaultSpeed (16.0)
+      expect(find.text('16.0s'), findsOneWidget);
       expect(find.text('0.0s'), findsOneWidget);
 
       // Slider properties
       final sliders = tester.widgetList<Slider>(find.byType(Slider)).toList();
       expect(sliders.length, greaterThanOrEqualTo(2));
-      expect(sliders[0].min, equals(0.2));
-      expect(sliders[0].max, equals(16.0));
-      expect(sliders[0].value, equals(1.0));
+      expect(sliders[0].min, equals(0.5));
+      expect(sliders[0].max, equals(60.0));
+      expect(sliders[0].value, equals(16.0));
       expect(sliders[1].min, equals(0.0));
       expect(sliders[1].max, equals(3.0));
       expect(sliders[1].value, equals(0.0));
@@ -1724,8 +1746,8 @@ void main() {
     });
   });
 
-  group('ImportPanel (via HomeScreen)', () {
-    testWidgets('tapping Importar tab shows Pegar SVG button', (tester) async {
+  group('MovePanel (via HomeScreen)', () {
+    testWidgets('tapping Mover tab shows move panel', (tester) async {
       final provider = MockSvgProvider();
       await tester.pumpWidget(createTestApp(
         home: HomeScreen(),
@@ -1733,67 +1755,47 @@ void main() {
       ));
       await tester.pump();
 
-      await tester.tap(find.text('Importar'));
+      expect(find.text('Mover'), findsOneWidget);
+
+      await tester.tap(find.text('Mover'));
       await tester.pump();
 
-      expect(find.text('Pegar SVG'), findsOneWidget);
+      expect(find.text('Selecciona piezas para mover'), findsOneWidget);
     });
 
-    testWidgets('Pegar SVG button opens paste dialog', (tester) async {
+    testWidgets('shows selection count when elements selected', (tester) async {
       final provider = MockSvgProvider();
+      provider.addSelectedElement(0);
+      provider.addSelectedElement(1);
       await tester.pumpWidget(createTestApp(
         home: HomeScreen(),
         provider: provider,
       ));
       await tester.pump();
 
-      await tester.tap(find.text('Importar'));
+      await tester.tap(find.text('Mover'));
       await tester.pump();
 
-      await tester.tap(find.text('Pegar SVG'));
-      await tester.pump();
-
-      expect(find.text('Pegar código SVG'), findsOneWidget);
-      expect(find.text('Cancelar'), findsWidgets);
-      expect(find.text('Cargar'), findsOneWidget);
+      expect(find.textContaining('Mover piezas seleccionadas'), findsOneWidget);
     });
 
-    testWidgets('cancel paste dialog closes without loading', (tester) async {
+    testWidgets('shows direction buttons when elements selected', (tester) async {
       final provider = MockSvgProvider();
+      provider.addSelectedElement(0);
       await tester.pumpWidget(createTestApp(
         home: HomeScreen(),
         provider: provider,
       ));
       await tester.pump();
 
-      await tester.tap(find.text('Importar'));
-      await tester.pump();
-      await tester.tap(find.text('Pegar SVG'));
+      await tester.tap(find.text('Mover'));
       await tester.pump();
 
-      // Cancel
-      await tester.tap(find.text('Cancelar'));
-      await tester.pump();
-
-      expect(find.text('Pegar código SVG'), findsNothing);
-      expect(provider.loadSvgStringCalledWith, isNull);
-    });
-
-    testWidgets('Import tab shows ShapesGrid below button', (tester) async {
-      final provider = MockSvgProvider();
-      await tester.pumpWidget(createTestApp(
-        home: HomeScreen(),
-        provider: provider,
-      ));
-      await tester.pump();
-
-      await tester.tap(find.text('Importar'));
-      await tester.pump();
-
-      // Both the button and shapes grid should be visible
-      expect(find.text('Pegar SVG'), findsOneWidget);
-      expect(find.text('Círculo'), findsOneWidget);
-      expect(find.text('Cuadrado'), findsOneWidget);
+      expect(find.byIcon(Icons.arrow_upward), findsOneWidget);
+      expect(find.byIcon(Icons.arrow_downward), findsOneWidget);
+      expect(find.byIcon(Icons.arrow_back), findsOneWidget);
+      expect(find.byIcon(Icons.arrow_forward), findsOneWidget);
+      expect(find.byIcon(Icons.center_focus_strong), findsWidgets);
     });
   });
 }

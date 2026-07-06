@@ -6,9 +6,6 @@ import 'package:hive/hive.dart';
 import 'package:svg_animated_ftl/providers/svg_provider.dart';
 import 'package:svg_animated_ftl/providers/settings_provider.dart';
 import 'package:svg_animated_ftl/providers/theme_provider.dart';
-import 'package:svg_animated_ftl/models/workspace.dart';
-import 'package:svg_animated_ftl/models/animation_config.dart';
-import 'package:svg_animated_ftl/models/trajectory.dart';
 
 void main() {
   group('ThemeProvider', () {

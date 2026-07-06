@@ -2,7 +2,6 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:svg_animated_ftl/services/trajectory_service.dart';
 import 'package:svg_animated_ftl/models/workspace.dart';
 import 'package:svg_animated_ftl/models/animation_config.dart';
-import 'package:svg_animated_ftl/models/trajectory.dart';
 
 Workspace _createWs() {
   return Workspace(id: 'test', name: 'Test');

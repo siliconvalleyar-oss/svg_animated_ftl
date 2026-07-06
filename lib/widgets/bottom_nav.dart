@@ -22,11 +22,10 @@ class BottomNav extends StatelessWidget {
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceAround,
           children: [
-            _buildTab(0, Icons.upload_file, 'Importar'),
+            _buildTab(0, Icons.sports_esports, 'Mover'),
             _buildTab(1, Icons.animation, 'Animar'),
             _buildTab(2, Icons.tune, 'Controles'),
             _buildTab(3, Icons.grid_view, 'Piezas'),
-            _buildTab(4, Icons.save_alt, 'Exportar'),
           ],
         ),
       ),

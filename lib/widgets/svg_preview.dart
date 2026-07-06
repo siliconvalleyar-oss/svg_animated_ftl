@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import '../providers/svg_provider.dart';
-import '../services/svg_parser.dart';
 import '../core/constants.dart';
 import 'animation_scope.dart';
 import 'empty_state.dart';
@@ -115,7 +114,16 @@ class _SvgPreviewState extends State<SvgPreview> {
                 TrajectoryOverlay(),
               if (provider.activeWorkspace.isPiecesMode)
                 PiecesOverlay(),
-              ZoomControls(controller: _transformController),
+              Positioned(
+                right: 8,
+                top: 8,
+                child: LayoutBuilder(
+                  builder: (context, constraints) => ZoomControls(
+                    controller: _transformController,
+                    viewportSize: Size(constraints.maxWidth, constraints.maxHeight),
+                  ),
+                ),
+              ),
             ],
           ),
         );

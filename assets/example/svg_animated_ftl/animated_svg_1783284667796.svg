@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg height="366" viewBox="0 0 366 366" width="366" xmlns="http://www.w3.org/2000/svg">
+  <style>@keyframes svgProjectile_0 { 0% { transform: translate(0, 0); } 50% { transform: translate(250.0px, -255.10204081632648px); } 100% { transform: translate(500.0px, 0); } } @keyframes svgDraw_4 { 0% { clip-path: inset(0 100% 0 0); } 100% { clip-path: inset(0 0% 0 0); } } @keyframes svgOval_1 { 0% { transform: translate(0, 0); } 25% { transform: translate(80.0px, 0); } 50% { transform: translate(0, 0); } 75% { transform: translate(0, 40.0px); } 100% { transform: translate(0, 0); } } @keyframes svgShake_3 { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-8px); } 75% { transform: translateX(8px); } } @keyframes svgProjectile_5 { 0% { transform: translate(0, 0); } 50% { transform: translate(250.0px, -255.10204081632648px); } 100% { transform: translate(500.0px, 0); } } @keyframes svgProjectile_7 { 0% { transform: translate(0, 0); } 50% { transform: translate(250.0px, -255.10204081632648px); } 100% { transform: translate(500.0px, 0); } } @keyframes svgProjectile_6 { 0% { transform: translate(0, 0); } 50% { transform: translate(250.0px, -255.10204081632648px); } 100% { transform: translate(500.0px, 0); } } @keyframes svgRotate_8 { from { transform: rotate(0deg); } to { transform: rotate(360deg); } } @keyframes svgFade_2 { 0%, 100% { opacity: 1; } 50% { opacity: 0.15; } } [data-anim-index="0"] { animation: svgProjectile_0 16.0s linear infinite 0.0s reverse; transform-origin: center; transform-box: fill-box; } [data-anim-index="4"] { animation: svgDraw_4 16.0s ease-in-out infinite 0.0s alternate; transform-origin: center; transform-box: fill-box; } [data-anim-index="1"] { animation: svgOval_1 16.0s linear infinite 0.0s reverse; transform-origin: center; transform-box: fill-box; } [data-anim-index="3"] { animation: svgShake_3 16.0s ease-in-out infinite 0.0s reverse; transform-origin: center; transform-box: fill-box; } [data-anim-index="5"] { animation: svgProjectile_5 16.0s linear infinite 0.0s reverse; transform-origin: center; transform-box: fill-box; } [data-anim-index="7"] { animation: svgProjectile_7 16.0s linear infinite 0.0s reverse; transform-origin: center; transform-box: fill-box; } [data-anim-index="6"] { animation: svgProjectile_6 16.0s linear infinite 0.0s reverse; transform-origin: center; transform-box: fill-box; } [data-anim-index="8"] { animation: svgRotate_8 16.0s linear infinite 0.0s reverse; transform-origin: center; transform-box: fill-box; } [data-anim-index="2"] { animation: svgFade_2 16.0s ease-in-out infinite 0.0s normal; transform-origin: center; transform-box: fill-box; }</style>
+  <!-- Blue outer (semi) -->
+  <path d="m18.997 106.524c-42.236 90.576-3.049 198.242 87.527 240.479 90.576 42.236 198.242 3.049 240.479-87.527 42.236-90.576 3.049-198.242-87.527-240.479-90.576-42.236-198.242-3.049-240.479 87.527z" fill="none" opacity=".191" stroke="#659cc8" stroke-dasharray="76 4 70" stroke-width="2" data-anim-index="0"/>
+  <!-- Blue outer -->
+  <circle cx="183" cy="183" fill="none" r="181" stroke="#659cc8" stroke-dasharray="2 45 161" stroke-width="2" data-anim-index="1"/>
+  <!-- Green outer -->
+  <circle cx="183" cy="183" fill="none" r="159" stroke="#78af9f" stroke-dasharray="76 4 70" stroke-width="4" data-anim-index="2"/>
+  <!-- Green outer (semi) -->
+  <circle cx="183" cy="183" fill="none" opacity=".278" r="159" stroke="#78af9f" stroke-dasharray="46 2 12" stroke-width="4" data-anim-index="3"/>
+  <!-- Yellow outer -->
+  <circle cx="183" cy="183" fill="none" r="150" stroke="#dda032" stroke-dasharray="76 2 40 180" stroke-width="8" data-anim-index="4"/>
+  <!-- Yellow outer (semi) -->
+  <path d="m92.733 302.788c66.157 49.854 160.202 36.636 210.055-29.52 49.854-66.158 36.636-160.203-29.52-210.056-66.158-49.854-160.203-36.636-210.056 29.52-49.854 66.158-36.636 160.203 29.52 210.056z" fill="none" opacity=".688" stroke="#dda032" stroke-dasharray="56 2 4" stroke-width="8" data-anim-index="5"/>
+  <!-- Orange outer -->
+  <circle cx="183" cy="183" fill="none" r="141" stroke="#d36e2d" stroke-dasharray="51 4 10 80" stroke-width="4" data-anim-index="6"/>
+  <!-- Orange outer (semi) -->
+  <path d="m251.346 306.299c68.096-37.746 92.7-123.549 54.953-191.645-37.746-68.096-123.549-92.7-191.645-54.953-68.096 37.746-92.7 123.549-54.953 191.645 37.746 68.096 123.549 92.7 191.645 54.953z" fill="none" opacity=".441" stroke="#d36e2d" stroke-dasharray="140 4 10 80" stroke-width="4" data-anim-index="7"/>
+  <!-- Red inner -->
+  <circle cx="183" cy="183" fill="none" r="130" stroke="#c13f21" stroke-dasharray="35 7 10 80" stroke-width="2" data-anim-index="8"/>
+  <!-- Red inner (semi) -->
+  <circle cx="183" cy="183" fill="none" opacity=".278" r="130" stroke="#c13f21" stroke-dasharray="35 7 10 80" stroke-width="2" data-anim-index="9"/>
+</svg>

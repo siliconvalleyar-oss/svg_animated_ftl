@@ -259,6 +259,27 @@ class SvgProvider extends ChangeNotifier {
   }
 
   // ============================================================
+  // MOVE ELEMENTS
+  // ============================================================
+
+  void moveSelectedElements(double dx, double dy) {
+    if (activeWorkspace.selectedGroupElements.isEmpty) return;
+    _historyService.pushHistory(activeWorkspace);
+    for (final index in activeWorkspace.selectedGroupElements) {
+      final current = activeWorkspace.elementOffsets[index] ?? Offset.zero;
+      activeWorkspace.elementOffsets[index] = current + Offset(dx, dy);
+    }
+    notifyListeners();
+  }
+
+  void resetElementOffsets() {
+    if (activeWorkspace.elementOffsets.isEmpty) return;
+    _historyService.pushHistory(activeWorkspace);
+    activeWorkspace.elementOffsets.clear();
+    notifyListeners();
+  }
+
+  // ============================================================
   // PIECES MODE
   // ============================================================
 
